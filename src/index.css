@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0F172A;
+  --color-secondary: #1D4ED8;
+  --color-highlight: #C9A95C;
+  --color-light-bg: #F8FAFC;
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Poppins", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-light-bg text-slate-800 font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display text-primary;
+  }
+}
+
+/* Animations that are global */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease-in-out forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

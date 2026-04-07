@@ -1,0 +1,99 @@
+import { Link } from 'react-router-dom';
+import { BedDouble, Bath, CarFront, Maximize, MapPin } from 'lucide-react';
+import type { Property } from '../types';
+import { companyData } from '../data/mockData';
+
+interface PropertyCardProps {
+  property: Property;
+}
+
+export default function PropertyCard({ property }: PropertyCardProps) {
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      maximumFractionDigits: 0
+    }).format(price);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-slate-100 flex flex-col h-full">
+      {/* Image Container */}
+      <div className="relative overflow-hidden aspect-[4/3]">
+        <img 
+          src={property.imagens[0]} 
+          alt={property.titulo} 
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+        />
+        
+        {/* Badges */}
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
+          <span className="bg-primary/90 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide">
+            {property.tipo}
+          </span>
+          {property.destaque && (
+            <span className="bg-highlight/90 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm">
+              Oportunidade
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 flex flex-col flex-grow">
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <h3 className="font-display font-semibold text-lg text-primary line-clamp-2 leading-tight">
+            {property.titulo}
+          </h3>
+        </div>
+        
+        <div className="flex items-center text-slate-500 text-sm mb-4">
+          <MapPin size={16} className="mr-1.5 shrink-0 text-slate-400" />
+          <span className="truncate">{property.bairro}, {property.cidade}</span>
+        </div>
+
+        <div className="text-2xl font-bold text-slate-800 mb-6">
+          {formatPrice(property.preco)}
+        </div>
+
+        {/* Features */}
+        <div className="grid grid-cols-4 gap-2 mb-6 border-t border-slate-100 pt-4 mt-auto">
+          <div className="flex flex-col items-center justify-center text-slate-600">
+            <Maximize size={18} className="mb-1 text-slate-400" />
+            <span className="text-xs font-medium">{property.area}m²</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-slate-600">
+            <BedDouble size={18} className="mb-1 text-slate-400" />
+            <span className="text-xs font-medium">{property.quartos} qt</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-slate-600">
+            <Bath size={18} className="mb-1 text-slate-400" />
+            <span className="text-xs font-medium">{property.banheiros} bh</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-slate-600">
+            <CarFront size={18} className="mb-1 text-slate-400" />
+            <span className="text-xs font-medium">{property.vagas} vg</span>
+          </div>
+        </div>
+
+        {/* CTAs */}
+        <div className="flex gap-3">
+          <Link 
+            to={`/imovel/${property.id}`}
+            className="flex-1 bg-slate-100 hover:bg-slate-200 text-primary text-sm font-semibold py-3 rounded-xl transition-colors text-center"
+          >
+            Detalhes
+          </Link>
+          <a 
+            href={`https://wa.me/${companyData.whatsapp}?text=Olá! Tenho interesse no imóvel: ${property.titulo} - Ref: ${property.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-primary hover:bg-slate-800 text-white text-sm font-semibold py-3 rounded-xl transition-colors text-center"
+          >
+            Interesse
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}

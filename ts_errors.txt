@@ -1,0 +1,6 @@
+src/components/Footer.tsx(1,31): error TS2305: Module '"lucide-react"' has no exported member 'Instagram'.
+src/components/Footer.tsx(1,42): error TS2305: Module '"lucide-react"' has no exported member 'Facebook'.
+src/components/Footer.tsx(1,52): error TS2305: Module '"lucide-react"' has no exported member 'Linkedin'.
+src/components/PropertyCard.tsx(3,10): error TS1484: 'Property' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/data/mockData.ts(1,10): error TS1484: 'Company' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/data/mockData.ts(1,19): error TS1484: 'Property' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
