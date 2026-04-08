@@ -21,9 +21,30 @@ export interface Company {
   email: string;
   endereco: string;
   descricao: string;
+  hero: {
+    titulo: string;
+    subtitulo: string;
+    imagemFundo: string;
+  };
+  cores: {
+    primaria: string;
+    destaque: string;
+  };
   estatisticas: {
     anosMercado: number;
     imoveisVendidos: number;
     clientesSatisfeitos: number;
   }
+}
+
+export interface Lead {
+  id: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  propertyId: string;
+  propertyTitulo: string;
+  mensagem: string;
+  data: string;
+  status: 'Novo' | 'Em Atendimento' | 'Arquivado';
 }

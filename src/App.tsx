@@ -1,10 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import WhatsAppButton from './components/WhatsAppButton';
-import Home from './pages/Home';
-import PropertyDetails from './pages/PropertyDetails';
+import { GlobalProvider } from './context/GlobalContext';
 import { useEffect } from 'react';
+
+// Layouts
+import PublicLayout from './layouts/PublicLayout';
+import AdminLayout from './layouts/AdminLayout';
+
+// Public Pages
+import Home from './pages/Home';
+import PropertiesPage from './pages/PropertiesPage';
+import PropertyDetails from './pages/PropertyDetails';
+
+// Admin Pages
+import Dashboard from './pages/admin/Dashboard';
+import PropertiesList from './pages/admin/PropertiesList';
+import Settings from './pages/admin/Settings';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -16,20 +26,26 @@ function ScrollToTop() {
 
 function App() {
   return (
-    <Router>
-      <ScrollToTop />
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
+    <GlobalProvider>
+      <Router>
+        <ScrollToTop />
+        <Routes>
+          {/* Main Website / White-label Vitrine */}
+          <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/imoveis" element={<PropertiesPage />} />
             <Route path="/imovel/:id" element={<PropertyDetails />} />
-          </Routes>
-        </main>
-        <Footer />
-        <WhatsAppButton />
-      </div>
-    </Router>
+          </Route>
+
+          {/* Admin Dashboard */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="imoveis" element={<PropertiesList />} />
+            <Route path="configuracoes" element={<Settings />} />
+          </Route>
+        </Routes>
+      </Router>
+    </GlobalProvider>
   );
 }
 

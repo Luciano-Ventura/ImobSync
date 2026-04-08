@@ -1,12 +1,58 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Share2, Heart, ArrowLeft, MapPin, Maximize, BedDouble, Bath, CarFront, Check } from 'lucide-react';
-import { propertiesData, companyData } from '../data/mockData';
+import { useGlobalContext } from '../context/GlobalContext';
 
 export default function PropertyDetails() {
+  const navigate = useNavigate();
+  const { properties: propertiesData, company: companyData } = useGlobalContext();
   const { id } = useParams<{ id: string }>();
   const [property, setProperty] = useState(propertiesData.find(p => p.id === id));
   const [activeImage, setActiveImage] = useState(0);
+  const [isSaved, setIsSaved] = useState(false);
+  
+  const { leads, setLeads } = useGlobalContext();
+  const [leadForm, setLeadForm] = useState({ nome: '', email: '', telefone: '', mensagem: '' });
+  const [leadSuccess, setLeadSuccess] = useState(false);
+
+  useEffect(() => {
+    if(property) {
+      setLeadForm(prev => ({ ...prev, mensagem: `Olá, tenho interesse no imóvel: ${property.titulo}` }));
+    }
+  }, [property]);
+
+  const handleLeadSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!property) return;
+    
+    const newLead = {
+      id: `L${Date.now()}`,
+      ...leadForm,
+      propertyId: property.id,
+      propertyTitulo: property.titulo,
+      data: new Date().toISOString(),
+      status: 'Novo' as const
+    };
+    
+    setLeads([newLead, ...leads]);
+    setLeadSuccess(true);
+    setTimeout(() => setLeadSuccess(false), 5000);
+    setLeadForm({ nome: '', email: '', telefone: '', text: '' } as any);
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: property?.titulo,
+        text: 'Confira este imóvel incrível!',
+        url: window.location.href,
+      });
+    } catch (error) {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copiado para a área de transferência!');
+    }
+  };
 
   useEffect(() => {
     // Scroll to top when loaded
@@ -40,21 +86,29 @@ export default function PropertyDetails() {
         
         {/* Breadcrumb & Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <Link to="/" className="inline-flex items-center text-slate-500 hover:text-primary transition-colors font-medium">
-            <ArrowLeft size={18} className="mr-2" /> Voltar para lista
-          </Link>
+          <button onClick={() => navigate(-1)} className="inline-flex items-center text-slate-500 hover:text-primary transition-colors font-medium">
+            <ArrowLeft size={18} className="mr-2" /> Voltar
+          </button>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors font-medium text-sm">
+            <button onClick={handleShare} className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors font-medium text-sm">
               <Share2 size={16} /> Compartilhar
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors font-medium text-sm">
-              <Heart size={16} /> Salvar
+            <button 
+              onClick={() => setIsSaved(!isSaved)} 
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transistion-colors font-medium text-sm ${isSaved ? 'bg-rose-50 border-rose-200 text-rose-600' : 'border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200'}`}
+            >
+              <Heart size={16} fill={isSaved ? "currentColor" : "none"} /> {isSaved ? 'Salvo' : 'Salvar'}
             </button>
           </div>
         </div>
 
         {/* Header (Title & Price) */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8"
+        >
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
@@ -80,10 +134,15 @@ export default function PropertyDetails() {
               {formatPrice(property.preco)}
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Gallery */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-12"
+        >
           {/* Main Image */}
           <div className="md:col-span-8 rounded-2xl overflow-hidden aspect-[4/3] md:aspect-auto md:h-[500px]">
             <img 
@@ -105,7 +164,7 @@ export default function PropertyDetails() {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Main Content & Sidebar */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
@@ -193,25 +252,43 @@ export default function PropertyDetails() {
           </div>
           
           {/* Sidebar CTA */}
-          <div className="md:col-span-4">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="md:col-span-4"
+          >
             <div className="sticky top-32 bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-200/50">
-              <h3 className="text-xl font-bold tracking-tight text-primary mb-2">Interesse neste imóvel?</h3>
-              <p className="text-slate-500 text-sm mb-6">Fale diretamente com um de nossos corretores especializados.</p>
+              <h3 className="text-xl font-bold tracking-tight text-primary mb-2">Falar com o Corretor</h3>
+              <p className="text-slate-500 text-sm mb-6">Deixe seus dados e entraremos em contato rapidamente.</p>
               
-              <div className="space-y-4">
-                <a 
-                  href={`https://wa.me/${companyData.whatsapp}?text=Olá! Gostaria de agendar uma visita para o imóvel: ${property.titulo} (Ref: ${property.id})`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-[#25D366] hover:bg-[#1ebd5b] text-white py-4 px-6 rounded-xl font-semibold transition-all shadow-md flex justify-center items-center gap-2"
-                >
-                  Falar no WhatsApp
-                </a>
-                
-                <button className="w-full bg-slate-100 hover:bg-slate-200 text-primary py-4 px-6 rounded-xl font-semibold transition-all flex justify-center items-center gap-2">
-                  Agendar Visita
-                </button>
-              </div>
+              {leadSuccess ? (
+                <div className="bg-green-50 text-green-700 p-4 rounded-xl border border-green-200 mb-6 flex flex-col items-center text-center animate-fade-in">
+                  <Check size={32} className="mb-2" />
+                  <p className="font-semibold">Mensagem enviada!</p>
+                  <p className="text-sm mt-1">Nosso corretor entrará em contato em breve.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleLeadSubmit} className="space-y-4">
+                  <input required type="text" placeholder="Seu Nome" value={leadForm.nome} onChange={e => setLeadForm({...leadForm, nome: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:ring-primary text-sm" />
+                  <input required type="email" placeholder="E-mail" value={leadForm.email} onChange={e => setLeadForm({...leadForm, email: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:ring-primary text-sm" />
+                  <input required type="tel" placeholder="Telefone / WhatsApp" value={leadForm.telefone} onChange={e => setLeadForm({...leadForm, telefone: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:ring-primary text-sm" />
+                  <textarea required rows={3} value={leadForm.mensagem} onChange={e => setLeadForm({...leadForm, mensagem: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:ring-primary text-sm"></textarea>
+                  
+                  <button type="submit" className="w-full bg-primary hover:bg-slate-800 text-white py-4 px-6 rounded-xl font-semibold transition-all shadow-md">
+                    Enviar Mensagem
+                  </button>
+                  
+                  <a 
+                    href={`https://wa.me/${companyData.whatsapp}?text=${encodeURIComponent(`Olá! Tenho interesse no imóvel: ${property.titulo} (Ref: ${property.id})`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] hover:bg-[#1ebd5b] text-white py-4 px-6 rounded-xl font-semibold transition-all shadow-md flex justify-center items-center gap-2"
+                  >
+                    Chamar no WhatsApp
+                  </a>
+                </form>
+              )}
 
               <hr className="my-6 border-slate-100" />
 
@@ -225,7 +302,7 @@ export default function PropertyDetails() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
 
       </div>

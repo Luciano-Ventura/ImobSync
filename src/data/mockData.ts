@@ -7,6 +7,15 @@ export const companyData: Company = {
   email: 'contato@primehaus.com.br',
   endereco: 'Av. Brigadeiro Faria Lima, 3000 - Itaim Bibi, São Paulo - SP',
   descricao: 'A PrimeHaus Imóveis é referência no mercado imobiliário, oferecendo imóveis selecionados com alto padrão de qualidade e atendimento personalizado.',
+  hero: {
+    titulo: 'Encontre o imóvel ideal para sua vida.',
+    subtitulo: 'Casas e apartamentos selecionados com as melhores oportunidades do mercado. Experiência exclusiva do início ao fim.',
+    imagemFundo: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+  },
+  cores: {
+    primaria: '#0F172A',
+    destaque: '#C9A95C'
+  },
   estatisticas: {
     anosMercado: 15,
     imoveisVendidos: 1000,

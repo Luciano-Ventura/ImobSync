@@ -1,21 +1,23 @@
+import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
-import { companyData } from '../data/mockData';
+import { useGlobalContext } from '../context/GlobalContext';
 
 export default function Footer() {
+  const { company: companyData } = useGlobalContext();
   return (
     <footer className="bg-primary text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
-            <h3 className="text-2xl font-display font-bold text-highlight mb-4">PrimeHaus</h3>
+            <h3 className="text-2xl font-display font-bold text-highlight mb-4">{companyData.nome}</h3>
             <p className="text-slate-300 text-sm mb-6 leading-relaxed">
               {companyData.descricao}
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-slate-400 hover:text-highlight transition-colors text-sm font-medium">Insta</a>
-              <a href="#" className="text-slate-400 hover:text-highlight transition-colors text-sm font-medium">Face</a>
-              <a href="#" className="text-slate-400 hover:text-highlight transition-colors text-sm font-medium">IN</a>
+              <a href="#" className="text-slate-400 hover:text-highlight transition-colors text-sm font-medium" title="Em breve">Insta</a>
+              <a href="#" className="text-slate-400 hover:text-highlight transition-colors text-sm font-medium" title="Em breve">Face</a>
+              <a href="#" className="text-slate-400 hover:text-highlight transition-colors text-sm font-medium" title="Em breve">IN</a>
             </div>
           </div>
 
@@ -23,10 +25,10 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4 text-white">Navegação</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-slate-300 hover:text-highlight transition-colors">Início</a></li>
-              <li><a href="#imoveis" className="text-slate-300 hover:text-highlight transition-colors">Imóveis</a></li>
-              <li><a href="#sobre" className="text-slate-300 hover:text-highlight transition-colors">Sobre Nós</a></li>
-              <li><a href="#contato" className="text-slate-300 hover:text-highlight transition-colors">Contato</a></li>
+              <li><Link to="/" className="text-slate-300 hover:text-highlight transition-colors">Início</Link></li>
+              <li><Link to="/imoveis" className="text-slate-300 hover:text-highlight transition-colors">Imóveis</Link></li>
+              <li><a href="/#sobre" className="text-slate-300 hover:text-highlight transition-colors">Sobre Nós</a></li>
+              <li><a href="/#contato" className="text-slate-300 hover:text-highlight transition-colors">Contato</a></li>
             </ul>
           </div>
 
@@ -34,10 +36,10 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4 text-white">Buscando</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-slate-300 hover:text-highlight transition-colors">Casas em Condomínio</a></li>
-              <li><a href="#" className="text-slate-300 hover:text-highlight transition-colors">Coberturas</a></li>
-              <li><a href="#" className="text-slate-300 hover:text-highlight transition-colors">Apartamentos de Luxo</a></li>
-              <li><a href="#" className="text-slate-300 hover:text-highlight transition-colors">Lançamentos</a></li>
+              <li><Link to="/imoveis?tipo=casa" className="text-slate-300 hover:text-highlight transition-colors">Casas</Link></li>
+              <li><Link to="/imoveis?tipo=cobertura" className="text-slate-300 hover:text-highlight transition-colors">Coberturas</Link></li>
+              <li><Link to="/imoveis?tipo=apartamento" className="text-slate-300 hover:text-highlight transition-colors">Apartamentos</Link></li>
+              <li><Link to="/imoveis" className="text-slate-300 hover:text-highlight transition-colors">Lançamentos</Link></li>
             </ul>
           </div>
 

@@ -1,7 +1,8 @@
 import { MessageCircle } from 'lucide-react';
-import { companyData } from '../data/mockData';
+import { useGlobalContext } from '../context/GlobalContext';
 
 export default function WhatsAppButton() {
+  const { company: companyData } = useGlobalContext();
   return (
     <a
       href={`https://wa.me/${companyData.whatsapp}`}

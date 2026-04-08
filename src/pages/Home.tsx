@@ -1,11 +1,28 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Search, MapPin, Building2, CircleDollarSign, ArrowRight, ShieldCheck, Award, Users } from 'lucide-react';
-import { propertiesData, companyData } from '../data/mockData';
 import PropertyCard from '../components/PropertyCard';
+import { useGlobalContext } from '../context/GlobalContext';
 
 export default function Home() {
+  const { properties: propertiesData, company: companyData } = useGlobalContext();
   const featuredProperties = propertiesData.filter(p => p.destaque);
   const allProperties = propertiesData;
+  const navigate = useNavigate();
+
+  const [tipo, setTipo] = useState('');
+  const [localizacao, setLocalizacao] = useState('');
+  const [preco, setPreco] = useState('');
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (tipo) params.set('tipo', tipo);
+    if (localizacao) params.set('localizacao', localizacao);
+    if (preco) params.set('preco', preco);
+    
+    navigate(`/imoveis?${params.toString()}`);
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -14,7 +31,7 @@ export default function Home() {
         {/* Background Image & Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" 
+            src={companyData.hero.imagemFundo} 
             alt="Real Estate Luxury Background" 
             className="w-full h-full object-cover"
           />
@@ -22,15 +39,20 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 md:mt-0">
-          <div className="max-w-2xl animate-fade-in">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="max-w-2xl"
+          >
             <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-highlight text-sm font-semibold tracking-wider mb-6 border border-white/20 backdrop-blur-sm">
               ALTO PADRÃO
             </span>
             <h1 className="text-4xl md:text-6xl font-display font-bold text-white leading-tight mb-6">
-              Encontre o imóvel ideal para sua vida.
+              {companyData.hero.titulo}
             </h1>
             <p className="text-lg md:text-xl text-slate-200 mb-10 leading-relaxed font-light">
-              Casas e apartamentos selecionados com as melhores oportunidades do mercado. Experiência exclusiva do início ao fim.
+              {companyData.hero.subtitulo}
             </p>
 
             {/* Smart Search Card */}
@@ -40,7 +62,11 @@ export default function Home() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Building2 className="h-5 w-5 text-slate-400" />
                   </div>
-                  <select className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-primary focus:border-primary text-sm appearance-none bg-slate-50 font-medium text-slate-700">
+                  <select 
+                    value={tipo}
+                    onChange={(e) => setTipo(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-primary focus:border-primary text-sm appearance-none bg-slate-50 font-medium text-slate-700"
+                  >
                     <option value="">Tipo de Imóvel</option>
                     <option value="casa">Casa</option>
                     <option value="apartamento">Apartamento</option>
@@ -51,31 +77,50 @@ export default function Home() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <MapPin className="h-5 w-5 text-slate-400" />
                   </div>
-                  <input type="text" placeholder="Localização" className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-primary focus:border-primary text-sm bg-slate-50 font-medium text-slate-700" />
+                  <input 
+                    type="text" 
+                    value={localizacao}
+                    onChange={(e) => setLocalizacao(e.target.value)}
+                    placeholder="Localização" 
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-primary focus:border-primary text-sm bg-slate-50 font-medium text-slate-700" 
+                  />
                 </div>
                 <div className="flex-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <CircleDollarSign className="h-5 w-5 text-slate-400" />
                   </div>
-                  <select className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-primary focus:border-primary text-sm appearance-none bg-slate-50 font-medium text-slate-700">
+                  <select 
+                    value={preco}
+                    onChange={(e) => setPreco(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-primary focus:border-primary text-sm appearance-none bg-slate-50 font-medium text-slate-700"
+                  >
                     <option value="">Faixa de Preço</option>
                     <option value="ate-1m">Até R$ 1 Milhão</option>
                     <option value="1m-3m">R$ 1M a R$ 3 Milhões</option>
                     <option value="mais-3m">Acima de R$ 3 Milhões</option>
                   </select>
                 </div>
-                <button className="bg-primary hover:bg-slate-800 text-white py-3 px-8 rounded-xl font-semibold transition-colors flex items-center justify-center shadow-lg shadow-primary/30">
+                <button 
+                  onClick={handleSearch}
+                  className="bg-primary hover:bg-slate-800 text-white py-3 px-8 rounded-xl font-semibold transition-colors flex items-center justify-center shadow-lg shadow-primary/30"
+                >
                   <Search size={18} className="mr-2" />
                   Buscar
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="bg-white py-12 border-b border-slate-100">
+      <motion.section 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        className="bg-white py-12 border-b border-slate-100"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100">
             <div className="py-4 flex flex-col items-center">
@@ -95,17 +140,24 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Featured Properties */}
-      <section id="imoveis" className="py-20 bg-slate-50">
+      <motion.section 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        id="imoveis" 
+        className="py-20 bg-slate-50"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-end mb-12">
             <div>
               <span className="text-highlight font-semibold tracking-wider uppercase text-sm mb-2 block">Seleção Exclusiva</span>
               <h2 className="text-3xl md:text-4xl font-display font-bold text-primary">Imóveis em Destaque</h2>
             </div>
-            <Link to="#" className="hidden md:flex items-center text-primary font-medium hover:text-highlight transition-colors">
+            <Link to="/imoveis" className="hidden md:flex items-center text-primary font-medium hover:text-highlight transition-colors">
               Ver todos <ArrowRight size={16} className="ml-2" />
             </Link>
           </div>
@@ -117,15 +169,22 @@ export default function Home() {
           </div>
 
           <div className="mt-8 text-center md:hidden">
-            <Link to="#" className="inline-flex items-center text-primary font-medium hover:text-highlight transition-colors">
+            <Link to="/imoveis" className="inline-flex items-center text-primary font-medium hover:text-highlight transition-colors">
               Ver todos <ArrowRight size={16} className="ml-2" />
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* About Section */}
-      <section id="sobre" className="py-24 bg-white">
+      <motion.section 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        id="sobre" 
+        className="py-24 bg-white"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="flex-1">
@@ -177,10 +236,16 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Listagem Completa Section */}
-      <section className="py-20 bg-slate-50 border-t border-slate-100">
+      <motion.section 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        className="py-20 bg-slate-50 border-t border-slate-100"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-primary mb-4">Portfólio Completo</h2>
@@ -194,12 +259,12 @@ export default function Home() {
           </div>
           
           <div className="mt-12 text-center">
-            <button className="border-2 border-primary text-primary hover:bg-primary hover:text-white py-3 px-8 rounded-xl font-semibold transition-colors">
-              Carregar mais imóveis
-            </button>
+            <Link to="/imoveis" className="inline-block border-2 border-primary text-primary hover:bg-primary hover:text-white py-3 px-8 rounded-xl font-semibold transition-colors">
+              Ver Portfólio Completo
+            </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* CTA Section */}
       <section id="contato" className="py-24 bg-primary relative overflow-hidden">
@@ -221,12 +286,12 @@ export default function Home() {
             >
               Falar no WhatsApp
             </a>
-            <a 
-              href="#imoveis" 
+            <Link 
+              to="/imoveis" 
               className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm border border-white/20 py-4 px-10 rounded-xl font-semibold transition-all text-lg"
             >
               Ver Imóveis
-            </a>
+            </Link>
           </div>
         </div>
       </section>

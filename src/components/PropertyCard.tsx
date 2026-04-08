@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
 import { BedDouble, Bath, CarFront, Maximize, MapPin } from 'lucide-react';
+import { motion } from 'framer-motion';
 import type { Property } from '../types';
-import { companyData } from '../data/mockData';
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
+  
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -17,7 +18,14 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-slate-100 flex flex-col h-full">
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.4 }}
+      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-slate-100 flex flex-col h-full"
+    >
       {/* Image Container */}
       <div className="relative overflow-hidden aspect-[4/3]">
         <img 
@@ -84,16 +92,14 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           >
             Detalhes
           </Link>
-          <a 
-            href={`https://wa.me/${companyData.whatsapp}?text=Olá! Tenho interesse no imóvel: ${property.titulo} - Ref: ${property.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 bg-primary hover:bg-slate-800 text-white text-sm font-semibold py-3 rounded-xl transition-colors text-center"
+          <Link 
+            to={`/imovel/${property.id}`}
+            className="flex-1 bg-primary hover:bg-slate-800 text-white text-sm font-semibold py-3 rounded-xl transition-colors flex items-center justify-center text-center"
           >
             Interesse
-          </a>
+          </Link>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
