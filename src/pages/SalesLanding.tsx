@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Layout, Rocket, Shield, Zap, ArrowRight, BarChart3, Globe, Smartphone, UserPlus, PlayCircle } from 'lucide-react';
+import { CheckCircle2, Layout, Rocket, Shield, Zap, ArrowRight, BarChart3, Globe, Smartphone, PlayCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function SalesLanding() {

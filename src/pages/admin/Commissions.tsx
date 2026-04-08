@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CircleDollarSign, TrendingUp, Calendar, CreditCard, Plus, Loader2, ExternalLink } from 'lucide-react';
+import { CircleDollarSign, TrendingUp, Calendar, CreditCard, Plus, Loader2 } from 'lucide-react';
 import { useGlobalContext } from '../../context/GlobalContext';
 import { supabase } from '../../lib/supabase';
 
