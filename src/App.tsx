@@ -12,11 +12,13 @@ import AdminLayout from './layouts/AdminLayout';
 import Home from './pages/Home';
 import PropertiesPage from './pages/PropertiesPage';
 import PropertyDetails from './pages/PropertyDetails';
+import SalesLanding from './pages/SalesLanding';
 
 // Admin Pages
 import Login from './pages/Login';
 import Dashboard from './pages/admin/Dashboard';
 import PropertiesList from './pages/admin/PropertiesList';
+import Commissions from './pages/admin/Commissions';
 import Settings from './pages/admin/Settings';
 
 // Scroll to top on route change
@@ -27,12 +29,15 @@ function ScrollToTop() {
   return null;
 }
 
+import { HelmetProvider } from 'react-helmet-async';
+
 function App() {
   return (
-    <GlobalProvider>
-      <AuthProvider>
-        <Router>
-          <ScrollToTop />
+    <HelmetProvider>
+      <GlobalProvider>
+        <AuthProvider>
+          <Router>
+            <ScrollToTop />
           <Routes>
             {/* Main Website / White-label Vitrine */}
             <Route element={<PublicLayout />}>
@@ -41,6 +46,7 @@ function App() {
               <Route path="/imovel/:id" element={<PropertyDetails />} />
             </Route>
 
+            <Route path="/negocios" element={<SalesLanding />} />
             <Route path="/login" element={<Login />} />
 
             {/* Admin Dashboard - Protegido */}
@@ -48,6 +54,7 @@ function App() {
               <Route element={<AdminLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="imoveis" element={<PropertiesList />} />
+                <Route path="financeiro" element={<Commissions />} />
                 <Route path="configuracoes" element={<Settings />} />
               </Route>
             </Route>
@@ -55,6 +62,7 @@ function App() {
         </Router>
       </AuthProvider>
     </GlobalProvider>
+    </HelmetProvider>
   );
 }
 

@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropertyCard from '../components/PropertyCard';
 import { useGlobalContext } from '../context/GlobalContext';
+import SEO from '../components/SEO';
 
 export default function PropertiesPage() {
   const { properties: propertiesData } = useGlobalContext();
@@ -71,7 +72,9 @@ export default function PropertiesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-24 pb-20">
+    <>
+      <SEO title="Nossos Imóveis" description="Confira nosso portfólio completo de casas, apartamentos e coberturas exclusivas." />
+      <div className="min-h-screen bg-slate-50 pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
@@ -185,5 +188,6 @@ export default function PropertiesPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

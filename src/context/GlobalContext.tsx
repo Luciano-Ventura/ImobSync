@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Company, Property, Lead } from '../types';
+import type { Company, Property, Lead, SaleRecord } from '../types';
 import { companyData as initialCompany } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 
@@ -10,6 +10,8 @@ interface GlobalContextType {
   refreshProperties: () => Promise<void>;
   leads: Lead[];
   refreshLeads: () => Promise<void>;
+  sales: SaleRecord[];
+  refreshSales: () => Promise<void>;
   loading: boolean;
 }
 
@@ -19,6 +21,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
   const [company, setCompany] = useState<Company>(initialCompany);
   const [properties, setProperties] = useState<Property[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [sales, setSales] = useState<SaleRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Carregar dados iniciais do Supabase
@@ -64,6 +67,9 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
 
       // 3. Carregar Leads
       await refreshLeads();
+
+      // 4. Carregar Vendas
+      await refreshSales();
 
     } catch (error) {
       console.error('Erro ao carregar dados do Supabase:', error);
@@ -111,6 +117,24 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshSales = async () => {
+    const { data } = await supabase.from('sales_records').select('*').order('data_venda', { ascending: false });
+    if (data) {
+      setSales(data.map(s => ({
+        id: s.id,
+        propertyId: s.property_id,
+        propertyTitulo: s.property_titulo,
+        valorVenda: s.valor_venda,
+        valorComissao: s.valor_comissao,
+        corretorNome: s.corretor_nome,
+        dataVenda: s.data_venda,
+        status: s.status,
+        tipoContrato: s.tipo_contrato || 'Venda',
+        periodicidade: s.periodicidade || 'Única'
+      })));
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -128,6 +152,8 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
       refreshProperties, 
       leads, 
       refreshLeads, 
+      sales,
+      refreshSales,
       loading 
     }}>
       {children}

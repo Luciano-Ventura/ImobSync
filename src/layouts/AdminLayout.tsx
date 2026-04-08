@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Building, Settings, LogOut, ArrowLeft, Menu } from 'lucide-react';
+import { LayoutDashboard, Building, Settings, LogOut, ArrowLeft, Menu, CircleDollarSign } from 'lucide-react';
 import { useGlobalContext } from '../context/GlobalContext';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
@@ -13,6 +13,7 @@ export default function AdminLayout() {
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, exact: true },
     { name: 'Imóveis', path: '/admin/imoveis', icon: Building, exact: false },
+    { name: 'Financeiro', path: '/admin/financeiro', icon: CircleDollarSign, exact: false },
     { name: 'Configurações', path: '/admin/configuracoes', icon: Settings, exact: false },
   ];
 

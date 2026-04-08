@@ -55,7 +55,7 @@ export default function Navbar() {
             </Link>
             
             <a 
-              href={`https://wa.me/${companyData.whatsapp}`}
+              href={`https://wa.me/${companyData.whatsapp.replace(/\D/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
               className={`px-5 py-2.5 rounded-full flex items-center space-x-2 text-sm font-medium transition-all ${
@@ -90,7 +90,7 @@ export default function Navbar() {
           <a href="/#contato" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-800 font-medium py-2">Contato</a>
           <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-highlight font-bold py-2 border-t border-slate-100 pt-4">Área do Corretor</Link>
           <a 
-            href={`https://wa.me/${companyData.whatsapp}`}
+            href={`https://wa.me/${companyData.whatsapp.replace(/\D/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-primary text-white px-5 py-3 rounded-xl flex justify-center items-center space-x-2 text-sm font-medium"

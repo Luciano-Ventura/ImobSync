@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, Heart, ArrowLeft, MapPin, Maximize, BedDouble, Bath, CarFront, Check, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useGlobalContext } from '../context/GlobalContext';
 import { supabase } from '../lib/supabase';
+import SEO from '../components/SEO';
 
 export default function PropertyDetails() {
   const navigate = useNavigate();
@@ -94,8 +95,23 @@ export default function PropertyDetails() {
     }).format(price);
   };
 
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    const limited = digits.slice(0, 11);
+    if (limited.length <= 2) return limited.length > 0 ? `(${limited}` : '';
+    if (limited.length <= 6) return `(${limited.slice(0, 2)}) ${limited.slice(2)}`;
+    if (limited.length <= 10) return `(${limited.slice(0, 2)}) ${limited.slice(2, 6)}-${limited.slice(6)}`;
+    return `(${limited.slice(0, 2)}) ${limited.slice(2, 7)}-${limited.slice(7)}`;
+  };
+
   return (
-    <div className="min-h-screen bg-white pt-24 pb-20">
+    <>
+      <SEO 
+        title={property.titulo}
+        description={`${property.tipo} em ${property.bairro}, ${property.cidade}. ${property.descricao.slice(0, 150)}...`}
+        image={property.imagens[0]}
+      />
+      <div className="min-h-screen bg-white pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Breadcrumb & Actions */}
@@ -345,7 +361,14 @@ export default function PropertyDetails() {
                 <form onSubmit={handleLeadSubmit} className="space-y-4">
                   <input required type="text" placeholder="Seu Nome" value={leadForm.nome} onChange={e => setLeadForm({...leadForm, nome: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:ring-primary text-sm" />
                   <input required type="email" placeholder="E-mail" value={leadForm.email} onChange={e => setLeadForm({...leadForm, email: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:ring-primary text-sm" />
-                  <input required type="tel" placeholder="Telefone / WhatsApp" value={leadForm.telefone} onChange={e => setLeadForm({...leadForm, telefone: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:ring-primary text-sm" />
+                  <input 
+                    required 
+                    type="tel" 
+                    placeholder="Telefone / WhatsApp" 
+                    value={leadForm.telefone} 
+                    onChange={e => setLeadForm({...leadForm, telefone: formatPhone(e.target.value)})} 
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:ring-primary text-sm font-mono" 
+                  />
                   <textarea required rows={3} value={leadForm.mensagem} onChange={e => setLeadForm({...leadForm, mensagem: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:ring-primary text-sm"></textarea>
                   
                   <button 
@@ -357,7 +380,7 @@ export default function PropertyDetails() {
                   </button>
                   
                   <a 
-                    href={`https://wa.me/${companyData.whatsapp}?text=${encodeURIComponent(`Olá! Tenho interesse no imóvel: ${property.titulo} (Ref: ${property.id})`)}`}
+                    href={`https://wa.me/${companyData.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá! Tenho interesse no imóvel: ${property.titulo} (Ref: ${property.id})`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full bg-[#25D366] hover:bg-[#1ebd5b] text-white py-4 px-6 rounded-xl font-semibold transition-all shadow-md flex justify-center items-center gap-2"
@@ -384,5 +407,6 @@ export default function PropertyDetails() {
 
       </div>
     </div>
+    </>
   );
 }

@@ -56,3 +56,17 @@ export interface Lead {
   data: string;
   status: 'Novo' | 'Em Atendimento' | 'Arquivado';
 }
+
+export interface SaleRecord {
+  id: string;
+  propertyId: string;
+  propertyTitulo: string;
+  valorVenda: number;
+  valorComissao: number;
+  corretorNome: string;
+  dataVenda: string;
+  status: 'Pendente' | 'Pago';
+  tipoContrato: 'Venda' | 'Locação';
+  periodicidade: 'Única' | 'Mensal';
+}
+

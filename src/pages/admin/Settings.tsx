@@ -9,6 +9,13 @@ export default function Settings() {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Sincronizar formulário quando os dados carregarem do contexto
+  React.useEffect(() => {
+    if (company.nome !== 'ImobSync' || company.whatsapp !== '5511999999999') {
+      setFormData(company);
+    }
+  }, [company]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
@@ -53,6 +60,32 @@ export default function Settings() {
     setIsSaved(false);
   };
 
+  const formatPhone = (value: string) => {
+    // Remove tudo que não é número
+    const digits = value.replace(/\D/g, '');
+    
+    // Limita a 11 dígitos (DDD + 9 números)
+    const limited = digits.slice(0, 11);
+    
+    // Aplica a máscara progressivamente
+    if (limited.length <= 2) {
+      return limited.length > 0 ? `(${limited}` : '';
+    }
+    if (limited.length <= 6) {
+      return `(${limited.slice(0, 2)}) ${limited.slice(2)}`;
+    }
+    if (limited.length <= 10) {
+      return `(${limited.slice(0, 2)}) ${limited.slice(2, 6)}-${limited.slice(6)}`;
+    }
+    return `(${limited.slice(0, 2)}) ${limited.slice(2, 7)}-${limited.slice(7)}`;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setFormData({ ...formData, whatsapp: formatted, telefone: formatted });
+    setIsSaved(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -64,6 +97,9 @@ export default function Settings() {
       const updateData = {
         nome: formData.nome,
         whatsapp: formData.whatsapp,
+        telefone: formData.whatsapp, // Usar o mesmo conforme solicitado
+        email: formData.email,
+        endereco: formData.endereco,
         descricao: formData.descricao,
         cor_primaria: formData.cores.primaria,
         cor_destaque: formData.cores.destaque,
@@ -114,8 +150,23 @@ export default function Settings() {
               <input type="text" name="nome" value={formData.nome} onChange={handleChange} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">WhatsApp de Contato</label>
-              <input type="text" name="whatsapp" value={formData.whatsapp} onChange={handleChange} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" />
+              <label className="block text-sm font-medium text-slate-700 mb-2">WhatsApp / Telefone de Contato</label>
+              <input 
+                type="text" 
+                name="whatsapp" 
+                value={formData.whatsapp} 
+                onChange={handlePhoneChange} 
+                placeholder="(00) 00000-0000"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm font-mono" 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">E-mail Público</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="exemplo@email.com" className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Endereço Completo</label>
+              <input type="text" name="endereco" value={formData.endereco} onChange={handleChange} placeholder="Rua, Número, Bairro, Cidade - UF" className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-2">Descrição Curta (Rodapé e Sobre)</label>

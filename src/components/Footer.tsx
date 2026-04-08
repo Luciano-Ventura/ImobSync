@@ -65,7 +65,12 @@ export default function Footer() {
 
         <div className="border-t border-slate-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
           <p>© {new Date().getFullYear()} {companyData.nome}. Todos os direitos reservados.</p>
-          <p className="mt-4 md:mt-0">Desenvolvido com sofisticação.</p>
+          <div className="mt-4 md:mt-0 flex items-center gap-6">
+            <Link to="/negocios" className="text-highlight hover:text-white transition-colors font-semibold">
+              Seja um Parceiro ImobSync
+            </Link>
+            <p>Desenvolvido com sofisticação.</p>
+          </div>
         </div>
       </div>
     </footer>

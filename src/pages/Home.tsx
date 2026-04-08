@@ -266,7 +266,7 @@ export default function Home() {
               </ul>
               
               <a 
-                href={`https://wa.me/${companyData.whatsapp}`}
+                href={`https://wa.me/${companyData.whatsapp.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex bg-primary hover:bg-slate-800 text-white py-4 px-10 rounded-xl font-semibold transition-colors shadow-lg text-lg"
@@ -321,7 +321,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
-              href={`https://wa.me/${companyData.whatsapp}`}
+              href={`https://wa.me/${companyData.whatsapp.replace(/\D/g, '')}`}
               className="bg-highlight hover:bg-[#b5954a] text-white py-4 px-10 rounded-xl font-semibold transition-all shadow-lg text-lg flex items-center justify-center transform hover:-translate-y-1"
             >
               Falar no WhatsApp
