@@ -36,11 +36,16 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
-          <span className="bg-primary/90 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide">
-            {property.tipo}
-          </span>
+          <div className="flex gap-2">
+            <span className={`backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${property.finalidade === 'Aluguel' ? 'bg-blue-600/90' : 'bg-emerald-600/90'}`}>
+              {property.finalidade}
+            </span>
+            <span className="bg-primary/90 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+              {property.tipo}
+            </span>
+          </div>
           {property.destaque && (
-            <span className="bg-highlight/90 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm">
+            <span className="bg-highlight/90 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm w-fit">
               Oportunidade
             </span>
           )}
@@ -62,6 +67,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
         <div className="text-2xl font-bold text-slate-800 mb-6">
           {formatPrice(property.preco)}
+          {property.finalidade === 'Aluguel' && <span className="text-sm font-medium text-slate-500 ml-1">/mês</span>}
         </div>
 
         {/* Features */}

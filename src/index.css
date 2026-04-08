@@ -24,6 +24,13 @@
   .animate-fade-in {
     animation: fadeIn 0.8s ease-in-out forwards;
   }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes fadeIn {

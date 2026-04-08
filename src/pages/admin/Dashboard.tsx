@@ -1,12 +1,20 @@
 import { useGlobalContext } from '../../context/GlobalContext';
 import { Eye, Clock, Archive, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 
 export default function Dashboard() {
-  const { properties, leads, setLeads } = useGlobalContext();
+  const { properties, leads, refreshLeads } = useGlobalContext();
 
-  const handleUpdateLeadStatus = (id: string, newStatus: 'Novo' | 'Em Atendimento' | 'Arquivado') => {
-    setLeads(leads.map(l => l.id === id ? { ...l, status: newStatus } : l));
+  const handleUpdateLeadStatus = async (id: string, newStatus: 'Novo' | 'Em Atendimento' | 'Arquivado') => {
+    try {
+      const { error } = await supabase.from('leads').update({ status: newStatus }).eq('id', id);
+      if (error) throw error;
+      await refreshLeads();
+    } catch (err) {
+      console.error('Erro ao atualizar status do lead:', err);
+      alert('Erro ao atualizar status.');
+    }
   };
 
   const novosLeads = leads.filter(l => l.status === 'Novo').length;

@@ -1,10 +1,12 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Building, Settings, LogOut, ArrowLeft, Menu } from 'lucide-react';
 import { useGlobalContext } from '../context/GlobalContext';
+import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 
 export default function AdminLayout() {
   const { company } = useGlobalContext();
+  const { signOut } = useAuth();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -13,6 +15,11 @@ export default function AdminLayout() {
     { name: 'Imóveis', path: '/admin/imoveis', icon: Building, exact: false },
     { name: 'Configurações', path: '/admin/configuracoes', icon: Settings, exact: false },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = '/login';
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
@@ -66,10 +73,13 @@ export default function AdminLayout() {
             <ArrowLeft size={18} />
             Ver Vitrine
           </Link>
-          <Link to="/" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-400/10 transition-colors font-medium text-sm">
+          <button 
+            onClick={handleSignOut}
+            className="w-full h-fit flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-400/10 transition-colors font-medium text-sm"
+          >
             <LogOut size={18} />
             Sair
-          </Link>
+          </button>
         </div>
       </aside>
 

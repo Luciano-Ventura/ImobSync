@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalContext';
-import { Edit2, Trash2, Plus, Eye, X, Save } from 'lucide-react';
+import { Edit2, Trash2, Plus, Eye, X, Save, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Property } from '../../types';
+import { supabase } from '../../lib/supabase';
+import imageCompression from 'browser-image-compression';
 
 export default function PropertiesList() {
-  const { properties, setProperties } = useGlobalContext();
+  const { properties, refreshProperties } = useGlobalContext();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]); // Previews
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([]); // Arquivos reais
   const [formData, setFormData] = useState<Partial<Property>>({
     tipo: 'Casa',
+    finalidade: 'Venda',
     bairro: 'Jardins',
     cidade: 'São Paulo',
     destaque: false
@@ -24,42 +29,135 @@ export default function PropertiesList() {
         alert('Você pode adicionar no máximo 15 fotos.');
         return;
       }
-      const newImages = files.map(file => URL.createObjectURL(file));
-      setUploadedImages(prev => [...prev, ...newImages]);
+      
+      const newFiles = [...filesToUpload, ...files];
+      setFilesToUpload(newFiles);
+      
+      const newPreviews = files.map(file => URL.createObjectURL(file));
+      setUploadedImages(prev => [...prev, ...newPreviews]);
     }
+  };
+
+  const setAsCover = (index: number) => {
+    if (index === 0) return;
+    
+    // Mover preview
+    const newPreviews = [...uploadedImages];
+    const [movedPreview] = newPreviews.splice(index, 1);
+    newPreviews.unshift(movedPreview);
+    setUploadedImages(newPreviews);
+    
+    // Mover arquivo real
+    const newFiles = [...filesToUpload];
+    const [movedFile] = newFiles.splice(index, 1);
+    newFiles.unshift(movedFile);
+    setFilesToUpload(newFiles);
   };
 
   const removeImage = (index: number) => {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setFilesToUpload(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Formulário mockado simplificado
-  const handleAddNew = (e: React.FormEvent) => {
+  const uploadImages = async (propertyId: string): Promise<string[]> => {
+    const urls: string[] = [];
+    
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      
+      // 1. Compressão
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true
+      };
+      
+      try {
+        const compressedFile = await imageCompression(file, options);
+        
+        // 2. Renomear (ex: imovel-id-foto-0.jpg)
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${propertyId}/foto-${i}-${Date.now()}.${fileExt}`;
+        
+        // 3. Upload
+        const { error: uploadError } = await supabase.storage
+          .from('property-images')
+          .upload(fileName, compressedFile);
+
+        if (uploadError) throw uploadError;
+
+        // 4. Get Public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('property-images')
+          .getPublicUrl(fileName);
+          
+        urls.push(publicUrl);
+      } catch (err) {
+        console.error('Erro no upload de imagem:', err);
+      }
+    }
+    
+    return urls;
+  };
+
+  // Formulário funcional via Supabase
+  const handleAddNew = async (e: React.FormEvent) => {
     e.preventDefault();
-    const mockProperty: Property = {
-      id: `prop-${Date.now()}`,
-      titulo: formData.titulo || 'Novo Imóvel Sem Título',
-      tipo: formData.tipo as any || 'Casa',
-      preco: Number(formData.preco) || 0,
-      area: Number(formData.area) || 0,
-      quartos: Number(formData.quartos) || 0,
-      banheiros: Number(formData.banheiros) || 0,
-      vagas: Number(formData.vagas) || 0,
-      descricao: formData.descricao || '',
-      cidade: formData.cidade || '',
-      bairro: formData.bairro || '',
-      imagens: uploadedImages.length > 0 ? uploadedImages : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'],
-      destaque: false
-    };
-    setProperties([mockProperty, ...properties]);
-    setIsPanelOpen(false);
-    setUploadedImages([]);
-    setFormData({ tipo: 'Casa', bairro: 'Jardins', cidade: 'São Paulo', destaque: false });
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      // 1. Gerar um ID temporário ou usar o UUID do Supabase
+      const tempId = crypto.randomUUID();
+      
+      // 2. Upload de imagens reais (se houver)
+      let finalImages = ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'];
+      
+      if (filesToUpload.length > 0) {
+        finalImages = await uploadImages(tempId);
+      }
+
+      const newProperty = {
+        id: tempId, // Sincroniza o ID do Storage com o DB
+        titulo: formData.titulo || 'Novo Imóvel Sin Título',
+        tipo: formData.tipo as any || 'Casa',
+        finalidade: formData.finalidade as any || 'Venda',
+        preco: Number(formData.preco) || 0,
+        area: Number(formData.area) || 0,
+        quartos: Number(formData.quartos) || 0,
+        banheiros: Number(formData.banheiros) || 0,
+        vagas: Number(formData.vagas) || 0,
+        descricao: formData.descricao || '',
+        cidade: formData.cidade || 'São Paulo',
+        bairro: formData.bairro || 'Jardins',
+        imagens: finalImages,
+        destaque: false
+      };
+
+      const { error } = await supabase.from('properties').insert([newProperty]);
+      if (error) throw error;
+
+      await refreshProperties();
+      setIsPanelOpen(false);
+      setUploadedImages([]);
+      setFilesToUpload([]);
+      setFormData({ tipo: 'Casa', finalidade: 'Venda', bairro: 'Jardins', cidade: 'São Paulo', destaque: false });
+    } catch (err) {
+      console.error('Erro ao salvar imóvel:', err);
+      alert('Erro ao salvar imóvel. Verifique o console.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Deseja realmente excluir este imóvel da lista (temporariamente)?")) {
-      setProperties(properties.filter(p => p.id !== id));
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Deseja realmente excluir este imóvel permanentemente?")) {
+      const { error } = await supabase.from('properties').delete().eq('id', id);
+      if (error) {
+        alert('Erro ao excluir imóvel.');
+      } else {
+        await refreshProperties();
+      }
     }
   };
 
@@ -105,7 +203,9 @@ export default function PropertiesList() {
                     </div>
                   </td>
                   <td className="p-4 hidden md:table-cell">
-                     <span className="inline-flex py-1 px-2.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold uppercase tracking-wider">Venda</span>
+                     <span className={`inline-flex py-1 px-2.5 rounded-full text-xs font-semibold uppercase tracking-wider ${property.finalidade === 'Aluguel' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                       {property.finalidade}
+                     </span>
                   </td>
                   <td className="p-4 font-semibold text-slate-800 whitespace-nowrap">
                     {formatPrice(property.preco)}
@@ -182,13 +282,28 @@ export default function PropertiesList() {
                         {uploadedImages.map((img, idx) => (
                           <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group shadow-sm">
                             <img src={img} alt="preview" className="w-full h-full object-cover" />
-                            <button 
-                              type="button" 
-                              onClick={() => removeImage(idx)}
-                              className="absolute top-1.5 right-1.5 bg-rose-500 text-white rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-600 shadow-md"
-                            >
-                              <X size={14} />
-                            </button>
+                            <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                              <button 
+                                type="button" 
+                                onClick={() => setAsCover(idx)}
+                                title={idx === 0 ? "Foto de Capa" : "Tornar Capa"}
+                                className={`rounded-lg p-1 shadow-md transition-all ${idx === 0 ? 'bg-amber-500 text-white' : 'bg-white text-slate-400 hover:text-amber-500'}`}
+                              >
+                                <Plus size={14} className={idx === 0 ? "rotate-45" : ""} />
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => removeImage(idx)}
+                                className="bg-rose-500 text-white rounded-lg p-1 hover:bg-rose-600 shadow-md"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                            {idx === 0 && (
+                              <div className="absolute bottom-0 inset-x-0 bg-amber-500 text-[8px] text-white font-bold py-0.5 text-center uppercase tracking-widest">
+                                Capa
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -200,8 +315,25 @@ export default function PropertiesList() {
                       <label className="block text-sm font-medium text-slate-700 mb-1">Título do Anúncio</label>
                       <input type="text" value={formData.titulo || ''} onChange={e => setFormData({...formData, titulo: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" placeholder="Ex: Cobertura Duplex no Centro..." />
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Imóvel</label>
+                        <select value={formData.tipo} onChange={e => setFormData({...formData, tipo: e.target.value as any})} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm">
+                          <option value="Casa">Casa</option>
+                          <option value="Apartamento">Apartamento</option>
+                          <option value="Cobertura">Cobertura</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Finalidade</label>
+                        <select value={formData.finalidade} onChange={e => setFormData({...formData, finalidade: e.target.value as any})} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm">
+                          <option value="Venda">Venda</option>
+                          <option value="Aluguel">Aluguel</option>
+                        </select>
+                      </div>
+                    </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Valor Venda (R$)</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Valor {formData.finalidade === 'Aluguel' ? 'Mensal' : 'Venda'} (R$)</label>
                       <input type="number" value={formData.preco || ''} onChange={e => setFormData({...formData, preco: Number(e.target.value)})} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" placeholder="0" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -222,6 +354,16 @@ export default function PropertiesList() {
                         <input type="number" value={formData.vagas || ''} onChange={e => setFormData({...formData, vagas: Number(e.target.value)})} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" />
                       </div>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Cidade</label>
+                        <input type="text" value={formData.cidade || ''} onChange={e => setFormData({...formData, cidade: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" placeholder="Ex: São Paulo" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Bairro</label>
+                        <input type="text" value={formData.bairro || ''} onChange={e => setFormData({...formData, bairro: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" placeholder="Ex: Jardins" />
+                      </div>
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
                       <textarea rows={4} value={formData.descricao || ''} onChange={e => setFormData({...formData, descricao: e.target.value})} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm"></textarea>
@@ -231,9 +373,14 @@ export default function PropertiesList() {
               </div>
 
               <div className="p-6 border-t border-slate-100 bg-white">
-                <button form="property-form" type="submit" className="w-full bg-primary hover:bg-slate-800 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center shadow-md">
-                  <Save size={18} className="mr-2" />
-                  Salvar Imóvel
+                <button 
+                  form="property-form" 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full bg-primary hover:bg-slate-800 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center shadow-md disabled:opacity-70 gap-2"
+                >
+                  {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                  {isSubmitting ? 'Salvando...' : 'Salvar Imóvel'}
                 </button>
               </div>
             </motion.div>

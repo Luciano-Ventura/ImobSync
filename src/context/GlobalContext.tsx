@@ -1,42 +1,135 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Company, Property, Lead } from '../types';
-import { companyData as initialCompany, propertiesData as initialProperties } from '../data/mockData';
+import { companyData as initialCompany } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 
 interface GlobalContextType {
   company: Company;
   setCompany: React.Dispatch<React.SetStateAction<Company>>;
   properties: Property[];
-  setProperties: React.Dispatch<React.SetStateAction<Property[]>>;
+  refreshProperties: () => Promise<void>;
   leads: Lead[];
-  setLeads: React.Dispatch<React.SetStateAction<Lead[]>>;
+  refreshLeads: () => Promise<void>;
+  loading: boolean;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export function GlobalProvider({ children }: { children: React.ReactNode }) {
   const [company, setCompany] = useState<Company>(initialCompany);
-  const [properties, setProperties] = useState<Property[]>(initialProperties);
-  const [leads, setLeads] = useState<Lead[]>([
-    {
-      id: 'L1',
-      nome: 'Carlos Eduardo',
-      email: 'carlos.edu@example.com',
-      telefone: '11988887777',
-      propertyId: '1',
-      propertyTitulo: 'Casa Moderna em Jurerê Internacional',
-      mensagem: 'Olá, gostaria de agendar uma visita para este sabado.',
-      data: new Date().toISOString(),
-      status: 'Novo'
-    }
-  ]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  // Carregar dados iniciais do Supabase
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // 1. Carregar Config da Empresa
+      const { data: configData } = await supabase.from('company_config').select('*').single();
+      if (configData) {
+        setCompany({
+          nome: configData.nome,
+          telefone: configData.telefone,
+          whatsapp: configData.whatsapp,
+          email: configData.email,
+          endereco: configData.endereco,
+          descricao: configData.descricao,
+          hero: {
+            titulo: configData.hero_titulo,
+            subtitulo: configData.hero_subtitulo,
+            imagemFundo: configData.hero_imagem_fundo
+          },
+          cores: {
+            primaria: configData.cor_primaria,
+            destaque: configData.cor_destaque
+          },
+          estatisticas: {
+            anosMercado: configData.anos_mercado || 0,
+            imoveisVendidos: configData.imoveis_vendidos || 0,
+            clientesSatisfeitos: configData.clientes_satisfeitos || 0
+          },
+          sobre: {
+            titulo: configData.sobre_titulo || '',
+            descricao: configData.sobre_descricao || '',
+            pontosChave: configData.sobre_pontos_chave || [],
+            ctaTexto: configData.sobre_cta_texto || '',
+            imagemUrl: configData.sobre_imagem_url || ''
+          }
+        });
+      }
+
+      // 2. Carregar Imóveis
+      await refreshProperties();
+
+      // 3. Carregar Leads
+      await refreshLeads();
+
+    } catch (error) {
+      console.error('Erro ao carregar dados do Supabase:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshProperties = async () => {
+    const { data } = await supabase.from('properties').select('*').order('created_at', { ascending: false });
+    if (data) {
+      setProperties(data.map(p => ({
+        id: p.id,
+        titulo: p.titulo,
+        tipo: p.tipo,
+        finalidade: p.finalidade,
+        preco: p.preco,
+        area: p.area,
+        quartos: p.quartos,
+        banheiros: p.banheiros,
+        vagas: p.vagas,
+        descricao: p.descricao,
+        cidade: p.cidade,
+        bairro: p.bairro,
+        imagens: p.imagens,
+        destaque: p.destaque
+      })));
+    }
+  };
+
+  const refreshLeads = async () => {
+    const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+    if (data) {
+      setLeads(data.map(l => ({
+        id: l.id,
+        nome: l.nome,
+        email: l.email,
+        telefone: l.telefone,
+        propertyId: l.property_id,
+        propertyTitulo: l.property_titulo,
+        mensagem: l.mensagem,
+        data: l.created_at,
+        status: l.status
+      })));
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
     document.documentElement.style.setProperty('--color-primary', company.cores.primaria);
     document.documentElement.style.setProperty('--color-highlight', company.cores.destaque);
   }, [company.cores]);
 
   return (
-    <GlobalContext.Provider value={{ company, setCompany, properties, setProperties, leads, setLeads }}>
+    <GlobalContext.Provider value={{ 
+      company, 
+      setCompany, 
+      properties, 
+      refreshProperties, 
+      leads, 
+      refreshLeads, 
+      loading 
+    }}>
       {children}
     </GlobalContext.Provider>
   );

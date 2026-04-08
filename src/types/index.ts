@@ -12,6 +12,7 @@ export interface Property {
   descricao: string;
   imagens: string[];
   destaque: boolean;
+  finalidade: 'Venda' | 'Aluguel';
 }
 
 export interface Company {
@@ -34,7 +35,14 @@ export interface Company {
     anosMercado: number;
     imoveisVendidos: number;
     clientesSatisfeitos: number;
-  }
+  };
+  sobre: {
+    titulo: string;
+    descricao: string;
+    pontosChave: string[];
+    ctaTexto: string;
+    imagemUrl: string;
+  };
 }
 
 export interface Lead {

@@ -11,12 +11,14 @@ export default function Home() {
   const allProperties = propertiesData;
   const navigate = useNavigate();
 
+  const [finalidade, setFinalidade] = useState<'Venda' | 'Aluguel'>('Venda');
   const [tipo, setTipo] = useState('');
   const [localizacao, setLocalizacao] = useState('');
   const [preco, setPreco] = useState('');
 
   const handleSearch = () => {
     const params = new URLSearchParams();
+    params.set('finalidade', finalidade);
     if (tipo) params.set('tipo', tipo);
     if (localizacao) params.set('localizacao', localizacao);
     if (preco) params.set('preco', preco);
@@ -27,12 +29,12 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center">
+      <section className="relative h-[90vh] min-h-[650px] flex items-center justify-center">
         {/* Background Image & Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
             src={companyData.hero.imagemFundo} 
-            alt="Real Estate Luxury Background" 
+            alt="Fundo ImobSync" 
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-transparent"></div>
@@ -43,10 +45,10 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="max-w-2xl"
+            className="max-w-3xl"
           >
-            <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-highlight text-sm font-semibold tracking-wider mb-6 border border-white/20 backdrop-blur-sm">
-              ALTO PADRÃO
+            <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-highlight text-sm font-semibold tracking-wider mb-6 border border-white/20 backdrop-blur-sm uppercase">
+              Seja Bem-vindo à {companyData.nome}
             </span>
             <h1 className="text-4xl md:text-6xl font-display font-bold text-white leading-tight mb-6">
               {companyData.hero.titulo}
@@ -55,58 +57,100 @@ export default function Home() {
               {companyData.hero.subtitulo}
             </p>
 
-            {/* Smart Search Card */}
-            <div className="bg-white p-4 md:p-6 rounded-2xl shadow-xl max-w-4xl">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Building2 className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <select 
-                    value={tipo}
-                    onChange={(e) => setTipo(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-primary focus:border-primary text-sm appearance-none bg-slate-50 font-medium text-slate-700"
-                  >
-                    <option value="">Tipo de Imóvel</option>
-                    <option value="casa">Casa</option>
-                    <option value="apartamento">Apartamento</option>
-                    <option value="cobertura">Cobertura</option>
-                  </select>
-                </div>
-                <div className="flex-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input 
-                    type="text" 
-                    value={localizacao}
-                    onChange={(e) => setLocalizacao(e.target.value)}
-                    placeholder="Localização" 
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-primary focus:border-primary text-sm bg-slate-50 font-medium text-slate-700" 
-                  />
-                </div>
-                <div className="flex-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <CircleDollarSign className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <select 
-                    value={preco}
-                    onChange={(e) => setPreco(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-primary focus:border-primary text-sm appearance-none bg-slate-50 font-medium text-slate-700"
-                  >
-                    <option value="">Faixa de Preço</option>
-                    <option value="ate-1m">Até R$ 1 Milhão</option>
-                    <option value="1m-3m">R$ 1M a R$ 3 Milhões</option>
-                    <option value="mais-3m">Acima de R$ 3 Milhões</option>
-                  </select>
-                </div>
+            {/* Smart Search Card with Tabs */}
+            <div className="max-w-4xl">
+              {/* Tabs */}
+              <div className="flex gap-2 mb-0 ml-1">
                 <button 
-                  onClick={handleSearch}
-                  className="bg-primary hover:bg-slate-800 text-white py-3 px-8 rounded-xl font-semibold transition-colors flex items-center justify-center shadow-lg shadow-primary/30"
+                  onClick={() => setFinalidade('Venda')}
+                  className={`px-6 py-3 rounded-t-2xl font-bold text-sm transition-all ${finalidade === 'Venda' ? 'bg-white text-primary' : 'bg-primary/40 text-white/70 hover:bg-primary/60'}`}
                 >
-                  <Search size={18} className="mr-2" />
-                  Buscar
+                  Comprar
                 </button>
+                <button 
+                  onClick={() => setFinalidade('Aluguel')}
+                  className={`px-6 py-3 rounded-t-2xl font-bold text-sm transition-all ${finalidade === 'Aluguel' ? 'bg-white text-primary' : 'bg-primary/40 text-white/70 hover:bg-primary/60'}`}
+                >
+                  Alugar
+                </button>
+              </div>
+
+              {/* Search Bar Content */}
+              <div className="bg-white p-5 md:p-6 rounded-2xl rounded-tl-none shadow-2xl">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                  
+                  <div className="relative space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">O que busca?</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Building2 className="h-4 w-4 text-slate-400" />
+                      </div>
+                      <select 
+                        value={tipo}
+                        onChange={(e) => setTipo(e.target.value)}
+                        className="block w-full pl-9 pr-3 py-3.5 border border-slate-100 rounded-xl focus:ring-2 focus:ring-primary/5 focus:border-primary text-sm appearance-none bg-slate-50 font-semibold text-slate-700 transition-all"
+                      >
+                        <option value="">Todos os Tipos</option>
+                        <option value="casa">Casa</option>
+                        <option value="apartamento">Apartamento</option>
+                        <option value="cobertura">Cobertura</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="relative space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Onde?</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-4 w-4 text-slate-400" />
+                      </div>
+                      <input 
+                        type="text" 
+                        value={localizacao}
+                        onChange={(e) => setLocalizacao(e.target.value)}
+                        placeholder="Cidade ou Bairro" 
+                        className="block w-full pl-9 pr-3 py-3.5 border border-slate-100 rounded-xl focus:ring-2 focus:ring-primary/5 focus:border-primary text-sm bg-slate-50 font-semibold text-slate-700 transition-all" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="relative space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Investimento</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <CircleDollarSign className="h-4 w-4 text-slate-400" />
+                      </div>
+                      <select 
+                        value={preco}
+                        onChange={(e) => setPreco(e.target.value)}
+                        className="block w-full pl-9 pr-3 py-3.5 border border-slate-100 rounded-xl focus:ring-2 focus:ring-primary/5 focus:border-primary text-sm appearance-none bg-slate-50 font-semibold text-slate-700 transition-all"
+                      >
+                        <option value="">Faixa de valor</option>
+                        {finalidade === 'Venda' ? (
+                          <>
+                            <option value="ate-1m">Até R$ 1 Milhão</option>
+                            <option value="1m-3m">R$ 1M a R$ 3 Milhões</option>
+                            <option value="mais-3m">Acima de R$ 3 Milhões</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="ate-5k">Até R$ 5.000 /mês</option>
+                            <option value="5k-15k">R$ 5k a R$ 15k /mês</option>
+                            <option value="mais-15k">Acima de R$ 15.000 /mês</option>
+                          </>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={handleSearch}
+                    className="bg-primary hover:bg-slate-800 text-white py-4 px-8 rounded-xl font-bold transition-all flex items-center justify-center shadow-xl shadow-primary/20 transform hover:-translate-y-0.5 active:translate-y-0"
+                  >
+                    <Search size={18} className="mr-2" />
+                    Buscar
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -190,8 +234,8 @@ export default function Home() {
             <div className="flex-1">
               <div className="relative">
                 <img 
-                  src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
-                  alt="Interior Luxo" 
+                  src={companyData.sobre.imagemUrl} 
+                  alt="Essência" 
                   className="rounded-3xl shadow-2xl object-cover aspect-[4/5] w-full max-w-md mx-auto"
                 />
                 <div className="absolute -bottom-10 -right-10 bg-primary text-white p-8 rounded-3xl shadow-xl hidden md:block max-w-xs border border-white/10">
@@ -204,21 +248,17 @@ export default function Home() {
             <div className="flex-1 pt-8 md:pt-0">
               <span className="text-highlight font-semibold tracking-wider uppercase text-sm mb-2 block">Nossa Essência</span>
               <h2 className="text-3xl md:text-5xl font-display font-bold text-primary mb-6 leading-tight">
-                Muito além da venda, a entrega de um sonho.
+                {companyData.sobre.titulo}
               </h2>
               <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                {companyData.descricao} Nosso portfólio é cuidadosamente curado para atender os clientes mais exigentes, garantindo exclusividade, segurança jurídica e discrição em todas as negociações.
+                {companyData.sobre.descricao}
               </p>
               
               <ul className="space-y-4 mb-10">
-                {[
-                  'Assessoria jurídica completa e especializada',
-                  'Atendimento Sigiloso e Personalizado',
-                  'Forte network internacional e nacional',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center text-slate-700 font-medium">
-                    <div className="h-6 w-6 rounded-full bg-highlight/20 flex items-center justify-center mr-3 text-highlight">
-                      <ShieldCheck size={14} />
+                {companyData.sobre.pontosChave.map((item, i) => (
+                  <li key={i} className="flex items-center text-slate-700 font-medium text-lg">
+                    <div className="h-7 w-7 rounded-full bg-highlight/20 flex items-center justify-center mr-4 text-highlight">
+                      <ShieldCheck size={16} />
                     </div>
                     {item}
                   </li>
@@ -229,9 +269,9 @@ export default function Home() {
                 href={`https://wa.me/${companyData.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex bg-primary hover:bg-slate-800 text-white py-4 px-8 rounded-xl font-semibold transition-colors shadow-lg"
+                className="inline-flex bg-primary hover:bg-slate-800 text-white py-4 px-10 rounded-xl font-semibold transition-colors shadow-lg text-lg"
               >
-                Gostaria de uma consultoria
+                {companyData.sobre.ctaTexto}
               </a>
             </div>
           </div>
