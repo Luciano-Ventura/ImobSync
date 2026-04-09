@@ -55,7 +55,7 @@ export default function PlatformLeads() {
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('platform_leads')
         .update({ status: newStatus })
         .eq('id', leadId);
@@ -70,7 +70,7 @@ export default function PlatformLeads() {
   const handleDeleteLead = async (id: string) => {
     if (!confirm('Deseja remover este lead do Kanban? (Não afetará imobiliárias já criadas)')) return;
     try {
-      const { error } = await supabase.from('platform_leads').delete().eq('id', id);
+      const { error } = await supabaseAdmin.from('platform_leads').delete().eq('id', id);
       if (error) throw error;
       setLeads(prev => prev.filter(l => l.id !== id));
     } catch (err) {

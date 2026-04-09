@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import type { Tenant } from '../../types/index';
 import { Building2, Search, Filter, ShieldCheck, ShieldAlert, ExternalLink, Mail, Trash2, AlertTriangle } from 'lucide-react';
 
@@ -32,7 +33,7 @@ export default function TenantsList() {
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
     try {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('tenants')
         .delete()
         .eq('id', id);
@@ -71,7 +72,10 @@ export default function TenantsList() {
                className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all w-64 text-sm"
              />
            </div>
-           <button className="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+           <button 
+             onClick={() => alert('Filtros avançados serão implementados na próxima versão.')}
+             className="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+           >
               <Filter size={20} className="text-slate-600" />
            </button>
         </div>
@@ -135,7 +139,7 @@ export default function TenantsList() {
                      <td className="px-6 py-4 text-right">
                        <div className="flex justify-end gap-2">
                           <button 
-                            onClick={() => alert(`Ação de contato para ${tenant.name} enviada!`)}
+                            onClick={() => window.location.href = `mailto:${tenant.slug}@imobsync.com.br`}
                             className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                             title="Enviar E-mail"
                           >
