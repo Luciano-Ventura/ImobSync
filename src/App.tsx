@@ -31,6 +31,7 @@ import SuperAdminLayout from './layouts/SuperAdminLayout';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import TenantsList from './pages/superadmin/TenantsList';
 import PlatformLeads from './pages/superadmin/PlatformLeads';
+import GlobalFinance from './pages/superadmin/GlobalFinance';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -121,7 +122,7 @@ function App() {
                   <Route index element={<SuperAdminDashboard />} />
                   <Route path="tenants" element={<TenantsList />} />
                   <Route path="leads" element={<PlatformLeads />} />
-                  <Route path="financeiro" element={<div className="p-8 text-slate-500">Financeiro Global (Em breve)</div>} />
+                  <Route path="financeiro" element={<GlobalFinance />} />
                 </Route>
               </Route>
             </Routes>

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Tenant } from '../../types/index';
-import { Building2, Search, Filter, MoreVertical, ShieldCheck, ShieldAlert, ExternalLink, Mail } from 'lucide-react';
+import { Building2, Search, Filter, ShieldCheck, ShieldAlert, ExternalLink, Mail, Trash2, AlertTriangle } from 'lucide-react';
 
 export default function TenantsList() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchTenants();
@@ -25,6 +27,24 @@ export default function TenantsList() {
       console.error('Erro ao buscar tenants:', err);
     } finally {
       setLoading(false);
+    }
+  };
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('tenants')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setTenants(prev => prev.filter(t => t.id !== id));
+      setDeleteConfirm(null);
+    } catch (err) {
+      console.error('Erro ao excluir tenant:', err);
+      alert('Erro ao excluir imobiliária. Verifique as permissões.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -112,16 +132,24 @@ export default function TenantsList() {
                     <td className="px-6 py-4">
                        <span className="text-sm font-medium text-slate-700">Broker Pro</span>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                         <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
-                            <Mail size={18} />
-                         </button>
-                         <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
-                            <MoreVertical size={18} />
-                         </button>
-                      </div>
-                    </td>
+                     <td className="px-6 py-4 text-right">
+                       <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => alert(`Ação de contato para ${tenant.name} enviada!`)}
+                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                            title="Enviar E-mail"
+                          >
+                             <Mail size={18} />
+                          </button>
+                          <button 
+                            onClick={() => setDeleteConfirm(tenant.id)}
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                            title="Excluir Imobiliária"
+                          >
+                             <Trash2 size={18} />
+                          </button>
+                       </div>
+                     </td>
                   </tr>
                 ))}
                 {filteredTenants.length === 0 && (
@@ -133,6 +161,38 @@ export default function TenantsList() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isDeleting && setDeleteConfirm(null)}></div>
+          <div className="relative bg-white w-full max-w-sm rounded-[2rem] p-8 shadow-2xl">
+            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+               <AlertTriangle size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 text-center mb-2">Excluir Imobiliária?</h3>
+            <p className="text-slate-500 text-center text-sm mb-8">
+              Esta ação é permanente e removerá todos os dados vinculados a esta instância.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setDeleteConfirm(null)}
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => handleDelete(deleteConfirm)}
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 shadow-lg shadow-rose-600/20 transition-all disabled:opacity-50 flex items-center justify-center"
+              >
+                {isDeleting ? 'Excluindo...' : 'Sim, Excluir'}
+              </button>
+            </div>
           </div>
         </div>
       )}

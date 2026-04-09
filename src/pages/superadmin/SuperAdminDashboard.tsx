@@ -1,6 +1,7 @@
 import { useAuth } from '../../context/AuthContext';
 import { Users, Building2, TrendingUp, Handshake, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 export default function SuperAdminDashboard() {
   const { profile } = useAuth();
@@ -22,29 +23,33 @@ export default function SuperAdminDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {stats.map((stat, idx) => (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            key={stat.name} 
-            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm"
+          <Link 
+            to={stat.name === 'Total de Tenants' ? '/super-admin/tenants' : stat.name === 'Leads Plataforma' ? '/super-admin/leads' : '#'}
+            key={stat.name}
           >
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                <stat.icon size={24} />
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-all hover:shadow-md cursor-pointer h-full"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                  <stat.icon size={24} />
+                </div>
+                <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${
+                  stat.trendType === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                }`}>
+                  {stat.trendType === 'up' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                  {stat.trend}
+                </div>
               </div>
-              <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${
-                stat.trendType === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-              }`}>
-                {stat.trendType === 'up' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                {stat.trend}
+              <div>
+                <p className="text-sm font-medium text-slate-500">{stat.name}</p>
+                <p className="text-2xl font-bold text-slate-800 mt-1">{stat.value}</p>
               </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">{stat.name}</p>
-              <p className="text-2xl font-bold text-slate-800 mt-1">{stat.value}</p>
-            </div>
-          </motion.div>
+            </motion.div>
+          </Link>
         ))}
       </div>
 
@@ -53,7 +58,7 @@ export default function SuperAdminDashboard() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-800">Novos Leads (Interessados)</h3>
-            <button className="text-sm text-indigo-600 font-semibold hover:underline">Ver todos</button>
+            <Link to="/super-admin/leads" className="text-sm text-indigo-600 font-semibold hover:underline">Ver todos</Link>
           </div>
           <div className="p-0">
              <table className="w-full text-left">
@@ -86,7 +91,7 @@ export default function SuperAdminDashboard() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-800">Tenants Ativos Recentemente</h3>
-            <button className="text-sm text-indigo-600 font-semibold hover:underline">Ver todos</button>
+            <Link to="/super-admin/tenants" className="text-sm text-indigo-600 font-semibold hover:underline">Ver todos</Link>
           </div>
           <div className="space-y-4 p-6">
             {[1, 2, 3].map((tenant) => (

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, MoreVertical, Mail, Building2, Calendar, CheckCircle, ArrowRight, Copy, Check, Link as LinkIcon } from 'lucide-react';
+import { Plus, MoreVertical, Mail, Building2, Calendar, CheckCircle, ArrowRight, Copy, Check, Link as LinkIcon, Trash2, X, RefreshCw } from 'lucide-react';
 
 interface PlatformLead {
   id: string;
@@ -29,6 +29,9 @@ export default function PlatformLeads() {
   const [isProvisioning, setIsProvisioning] = useState(false);
   const [provisionedData, setProvisionedData] = useState<{email: string, link: string} | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isNewLeadModalOpen, setIsNewLeadModalOpen] = useState(false);
+  const [newLeadForm, setNewLeadForm] = useState({ fullName: '', email: '', companyName: '', phone: '' });
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   useEffect(() => {
     fetchLeads();
@@ -63,6 +66,42 @@ export default function PlatformLeads() {
       console.error('Erro ao atualizar status:', err);
     }
   };
+
+  const handleDeleteLead = async (id: string) => {
+    if (!confirm('Deseja remover este lead do Kanban? (Não afetará imobiliárias já criadas)')) return;
+    try {
+      const { error } = await supabase.from('platform_leads').delete().eq('id', id);
+      if (error) throw error;
+      setLeads(prev => prev.filter(l => l.id !== id));
+    } catch (err) {
+      console.error('Erro ao excluir lead:', err);
+    }
+  };
+
+  const handleCreateLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingLead(true);
+    try {
+      const { data, error } = await supabase.from('platform_leads').insert([{
+        full_name: newLeadForm.fullName,
+        email: newLeadForm.email,
+        company_name: newLeadForm.companyName,
+        phone: newLeadForm.phone,
+        status: 'discovery'
+      }]).select().single();
+
+      if (error) throw error;
+      setLeads(prev => [data, ...prev]);
+      setIsNewLeadModalOpen(false);
+      setNewLeadForm({ fullName: '', email: '', companyName: '', phone: '' });
+    } catch (err) {
+      console.error('Erro ao criar lead:', err);
+      alert('Erro ao criar lead. Verifique os dados.');
+    } finally {
+      setIsSubmittingLead(false);
+    }
+  };
+
 
   const handleCreateAccount = async (lead: PlatformLead) => {
     setProvisioningLead(lead);
@@ -138,10 +177,18 @@ export default function PlatformLeads() {
             <p className="text-slate-500">Gestão de leads interessados na plataforma ImobSync.</p>
           </div>
           <div className="flex gap-3">
-             <button onClick={fetchLeads} className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-50 transition-all">
-                Atualizar
+             <button 
+                onClick={fetchLeads} 
+                className={`bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-50 transition-all flex items-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={loading}
+             >
+                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                {loading ? 'Sincronizando...' : 'Atualizar'}
              </button>
-             <button className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2">
+             <button 
+                onClick={() => setIsNewLeadModalOpen(true)}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2"
+             >
                 <Plus size={18} /> Novo Lead
              </button>
           </div>
@@ -171,7 +218,25 @@ export default function PlatformLeads() {
                     <motion.div
                       layoutId={lead.id}
                       key={lead.id}
-                      className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing group"
+                      drag
+                      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                      dragElastic={0.1}
+                      onDragEnd={(_, info) => {
+                        // Lógica simplificada de drag and drop: 
+                        // Se arrastar mais que 150px para a direita, avança o status
+                        if (info.offset.x > 150) {
+                          const currentIdx = STAGES.findIndex(s => s.id === stage.id);
+                          if (currentIdx < STAGES.length - 1) {
+                            updateLeadStatus(lead.id, STAGES[currentIdx + 1].id);
+                          }
+                        } else if (info.offset.x < -150) {
+                          const currentIdx = STAGES.findIndex(s => s.id === stage.id);
+                          if (currentIdx > 0) {
+                            updateLeadStatus(lead.id, STAGES[currentIdx - 1].id);
+                          }
+                        }
+                      }}
+                      className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing group relative"
                     >
                       <div className="flex items-start justify-between mb-3">
                          <h4 className="font-bold text-slate-800 text-sm leading-tight">{lead.full_name}</h4>
@@ -203,13 +268,20 @@ export default function PlatformLeads() {
                                   <CheckCircle size={14} />
                                </button>
                             )}
-                            <button 
-                               onClick={() => updateLeadStatus(lead.id, stage.id === 'discovery' ? 'demo' : stage.id === 'demo' ? 'negotiation' : 'closed')}
-                               className="p-1.5 bg-slate-50 text-slate-400 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all transform hover:scale-110"
-                            >
-                               <ArrowRight size={14} />
-                            </button>
-                         </div>
+                             <button 
+                                onClick={() => updateLeadStatus(lead.id, stage.id === 'discovery' ? 'demo' : stage.id === 'demo' ? 'negotiation' : 'closed')}
+                                className="p-1.5 bg-slate-50 text-slate-400 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all transform hover:scale-110"
+                             >
+                                <ArrowRight size={14} />
+                             </button>
+                             <button 
+                                onClick={() => handleDeleteLead(lead.id)}
+                                className="p-1.5 bg-slate-50 text-slate-400 rounded-lg hover:bg-rose-50 hover:text-rose-600 transition-all transform hover:scale-110"
+                                title="Excluir Lead"
+                             >
+                                <Trash2 size={14} />
+                             </button>
+                          </div>
                       </div>
                     </motion.div>
                   ))}
@@ -220,7 +292,7 @@ export default function PlatformLeads() {
         )}
       </div>
 
-      {/* Provisioning Modal */}
+       {/* Provisioning Modal */}
       <AnimatePresence>
         {(isProvisioning || provisionedData) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -279,6 +351,44 @@ export default function PlatformLeads() {
                      </button>
                   </div>
                 )}
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* New Lead Modal */}
+      <AnimatePresence>
+        {isNewLeadModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsNewLeadModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl p-8">
+                <div className="flex justify-between items-center mb-6">
+                   <h3 className="text-xl font-bold text-slate-800">Novo Lead da Plataforma</h3>
+                   <button onClick={() => setIsNewLeadModalOpen(false)} className="p-2 text-slate-400 hover:text-slate-600"><X size={20} /></button>
+                </div>
+                <form onSubmit={handleCreateLead} className="space-y-4">
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                         <label className="text-xs font-bold text-slate-500 uppercase">Nome Completo</label>
+                         <input required type="text" value={newLeadForm.fullName} onChange={e => setNewLeadForm({...newLeadForm, fullName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm" placeholder="Ex: João Silva" />
+                      </div>
+                      <div className="space-y-1">
+                         <label className="text-xs font-bold text-slate-500 uppercase">E-mail</label>
+                         <input required type="email" value={newLeadForm.email} onChange={e => setNewLeadForm({...newLeadForm, email: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm" placeholder="joao@empresa.com" />
+                      </div>
+                   </div>
+                   <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Nome da Imobiliária</label>
+                      <input required type="text" value={newLeadForm.companyName} onChange={e => setNewLeadForm({...newLeadForm, companyName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm" placeholder="Ex: Silva Imóveis" />
+                   </div>
+                   <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Telefone</label>
+                      <input type="text" value={newLeadForm.phone} onChange={e => setNewLeadForm({...newLeadForm, phone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm" placeholder="(11) 99999-9999" />
+                   </div>
+                   <button type="submit" disabled={isSubmittingLead} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition-all disabled:opacity-50 mt-4">
+                      {isSubmittingLead ? 'Criando...' : 'Cadastrar Lead'}
+                   </button>
+                </form>
              </motion.div>
           </div>
         )}
