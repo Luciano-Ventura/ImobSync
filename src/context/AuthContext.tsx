@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Pegar sessão inicial - NÃO BLOQUEANTE
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: any) => {
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Ouvir mudanças de auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);

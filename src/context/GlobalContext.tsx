@@ -40,7 +40,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
 
     const { data } = await query;
     if (data) {
-      setProperties(data.map(p => ({
+      setProperties(data.map((p: any) => ({
         id: p.id,
         titulo: p.titulo,
         tipo: p.tipo,
@@ -68,7 +68,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
 
     const { data } = await query;
     if (data) {
-      setLeads(data.map(l => ({
+      setLeads(data.map((l: any) => ({
         id: l.id,
         nome: l.nome,
         email: l.email,
@@ -91,7 +91,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
 
     const { data } = await query;
     if (data) {
-      setSales(data.map(s => ({
+      setSales(data.map((s: any) => ({
         id: s.id,
         propertyId: s.property_id,
         propertyTitulo: s.property_titulo,
