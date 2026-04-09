@@ -29,10 +29,13 @@ export default function Commissions() {
     setIsSubmitting(true);
 
     try {
+      if (!tenant) throw new Error('Tenant não identificado');
+      
       const selectedProperty = properties.find(p => p.id === newSale.propertyId);
       if (!selectedProperty) throw new Error('Selecione um imóvel');
 
       const { error } = await supabase.from('sales_records').insert([{
+        tenant_id: tenant.id, // VINCULAR AO TENANT
         property_id: newSale.propertyId,
         property_titulo: selectedProperty.titulo,
         valor_venda: parseFloat(newSale.valorVenda),

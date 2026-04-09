@@ -1,3 +1,10 @@
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  status: 'active' | 'suspended';
+}
+
 export interface Property {
   id: string;
   titulo: string;
@@ -21,6 +28,7 @@ export interface Company {
   whatsapp: string;
   email: string;
   endereco: string;
+  creci?: string;
   descricao: string;
   hero: {
     titulo: string;
@@ -70,3 +78,11 @@ export interface SaleRecord {
   periodicidade: 'Única' | 'Mensal';
 }
 
+export type UserRole = 'super-admin' | 'admin' | 'user';
+
+export interface UserProfile {
+  id: string;
+  tenantId: string | null;
+  role: UserRole;
+  fullName: string | null;
+}

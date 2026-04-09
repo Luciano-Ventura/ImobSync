@@ -6,6 +6,7 @@ export const companyData: Company = {
   whatsapp: '5511999999999',
   email: 'contato@imobsync.com.br',
   endereco: 'Av. Brigadeiro Faria Lima, 3000 - Itaim Bibi, São Paulo - SP',
+  creci: '12345-J',
   descricao: 'A ImobSync é referência no mercado imobiliário, oferecendo imóveis selecionados com alto padrão de qualidade e atendimento personalizado.',
   hero: {
     titulo: 'Encontre o imóvel ideal para sua vida.',

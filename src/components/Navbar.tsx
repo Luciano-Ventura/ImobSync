@@ -2,13 +2,21 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone } from 'lucide-react';
 import { useGlobalContext } from '../context/GlobalContext';
+import { getTenantSlug, isMainDomain } from '../lib/tenant';
 
 export default function Navbar() {
   const { company: companyData } = useGlobalContext();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const isHomePage = location.pathname === '/';
+  const mainDomain = isMainDomain();
+  
+  // No domínio principal, a home é a SalesLanding que já tem seu próprio Nav ou estilo
+  if (mainDomain && location.pathname === '/') {
+    return null; // A SalesLanding já tem sua própria navegação interna
+  }
+
+  const isHomePage = location.pathname === '/' || location.pathname === `/${getTenantSlug()}`;
   const forceDark = !isHomePage || isScrolled;
 
   useEffect(() => {

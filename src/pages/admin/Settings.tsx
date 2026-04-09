@@ -100,6 +100,7 @@ export default function Settings() {
         telefone: formData.whatsapp, // Usar o mesmo conforme solicitado
         email: formData.email,
         endereco: formData.endereco,
+        creci: formData.creci,
         descricao: formData.descricao,
         cor_primaria: formData.cores.primaria,
         cor_destaque: formData.cores.destaque,
@@ -167,6 +168,10 @@ export default function Settings() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Endereço Completo</label>
               <input type="text" name="endereco" value={formData.endereco} onChange={handleChange} placeholder="Rua, Número, Bairro, Cidade - UF" className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">CRECI (Opcional)</label>
+              <input type="text" name="creci" value={formData.creci || ''} onChange={handleChange} placeholder="00.000-J" className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 focus:ring-primary text-sm font-mono" />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-2">Descrição Curta (Rodapé e Sobre)</label>

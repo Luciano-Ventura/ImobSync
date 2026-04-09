@@ -16,16 +16,34 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
+    if (loginError) {
       setError('Credenciais inválidas. Verifique seu e-mail e senha.');
       setLoading(false);
     } else {
-      navigate('/admin');
+      // Login com sucesso
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Busca a role para decidir onde redirecionar no primeiro login
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profile?.role === 'super-admin') {
+          navigate('/super-admin');
+        } else {
+          navigate('/admin');
+        }
+      } else {
+        navigate('/admin');
+      }
     }
   };
 
@@ -37,11 +55,11 @@ export default function Login() {
         className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-8 border border-slate-100"
       >
         <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg shadow-primary/20">
+          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg shadow-indigo-600/20">
             <Lock size={30} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">Área do Corretor</h1>
-          <p className="text-slate-500 text-sm mt-2">Entre com suas credenciais para gerenciar sua imobiliária.</p>
+          <h1 className="text-2xl font-bold text-slate-800">Area ImobSync</h1>
+          <p className="text-slate-500 text-sm mt-2">Acesse seu painel administrativo.</p>
         </div>
 
         {error && (
@@ -60,8 +78,8 @@ export default function Login() {
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="corretor@imobsync.com"
-                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
+                placeholder="seu@email.com"
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
               />
             </div>
           </div>
@@ -76,7 +94,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
               />
             </div>
           </div>
@@ -84,7 +102,7 @@ export default function Login() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-primary hover:bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/10 transition-all flex items-center justify-center gap-2 disabled:opacity-70 group"
+            className="w-full bg-indigo-600 hover:bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-600/10 transition-all flex items-center justify-center gap-2 disabled:opacity-70 group"
           >
             {loading ? (
               <Loader2 className="animate-spin" size={20} />
@@ -100,7 +118,7 @@ export default function Login() {
         <div className="mt-8 pt-8 border-t border-slate-100 text-center">
           <button 
             onClick={() => navigate('/')}
-            className="text-slate-500 hover:text-primary text-sm font-medium transition-colors"
+            className="text-slate-500 hover:text-indigo-600 text-sm font-medium transition-colors"
           >
             Voltar para a vitrine pública
           </button>

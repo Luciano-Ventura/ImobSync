@@ -1,9 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Company, Property, Lead, SaleRecord } from '../types';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import type { Company, Property, Lead, SaleRecord, Tenant } from '../types';
 import { companyData as initialCompany } from '../data/mockData';
 import { supabase } from '../lib/supabase';
+import { getTenantSlug, isMainDomain } from '../lib/tenant';
+import { useAuth } from './AuthContext';
+import { useLocation } from 'react-router-dom';
 
 interface GlobalContextType {
+  tenant: Tenant | null;
   company: Company;
   setCompany: React.Dispatch<React.SetStateAction<Company>>;
   properties: Property[];
@@ -18,18 +22,100 @@ interface GlobalContextType {
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export function GlobalProvider({ children }: { children: React.ReactNode }) {
+  const [tenant, setTenant] = useState<Tenant | null>(null);
   const [company, setCompany] = useState<Company>(initialCompany);
   const [properties, setProperties] = useState<Property[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [sales, setSales] = useState<SaleRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const { profile } = useAuth();
 
-  // Carregar dados iniciais do Supabase
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // 1. Carregar Config da Empresa
-      const { data: configData } = await supabase.from('company_config').select('*').single();
+  const refreshProperties = useCallback(async (tenantId?: string | null) => {
+    let query = supabase.from('properties').select('*').order('created_at', { ascending: false });
+    
+    // Se não for super-admin e tiver um tenantId, filtra. 
+    // Se for super-admin (tenantId null ou omitido), traz tudo.
+    if (tenantId && profile?.role !== 'super-admin') {
+      query = query.eq('tenant_id', tenantId);
+    }
+
+    const { data } = await query;
+    if (data) {
+      setProperties(data.map(p => ({
+        id: p.id,
+        titulo: p.titulo,
+        tipo: p.tipo,
+        finalidade: p.finalidade,
+        preco: p.preco,
+        area: p.area,
+        quartos: p.quartos,
+        banheiros: p.banheiros,
+        vagas: p.vagas,
+        descricao: p.descricao,
+        cidade: p.cidade,
+        bairro: p.bairro,
+        imagens: p.imagens,
+        destaque: p.destaque
+      })));
+    }
+  }, [profile?.role]);
+
+  const refreshLeads = useCallback(async (tenantId?: string | null) => {
+    let query = supabase.from('leads').select('*').order('created_at', { ascending: false });
+    
+    if (tenantId && profile?.role !== 'super-admin') {
+      query = query.eq('tenant_id', tenantId);
+    }
+
+    const { data } = await query;
+    if (data) {
+      setLeads(data.map(l => ({
+        id: l.id,
+        nome: l.nome,
+        email: l.email,
+        telefone: l.telefone,
+        propertyId: l.property_id,
+        propertyTitulo: l.property_titulo,
+        mensagem: l.mensagem,
+        data: l.created_at,
+        status: l.status
+      })));
+    }
+  }, [profile?.role]);
+
+  const refreshSales = useCallback(async (tenantId?: string | null) => {
+    let query = supabase.from('sales_records').select('*').order('data_venda', { ascending: false });
+    
+    if (tenantId && profile?.role !== 'super-admin') {
+      query = query.eq('tenant_id', tenantId);
+    }
+
+    const { data } = await query;
+    if (data) {
+      setSales(data.map(s => ({
+        id: s.id,
+        propertyId: s.property_id,
+        propertyTitulo: s.property_titulo,
+        valorVenda: s.valor_venda,
+        valorComissao: s.valor_comissao,
+        corretorNome: s.corretor_nome,
+        dataVenda: s.data_venda,
+        status: s.status,
+        tipoContrato: s.tipo_contrato || 'Venda',
+        periodicidade: s.periodicidade || 'Única'
+      })));
+    }
+  }, [profile?.role]);
+
+  const loadConfigAndData = async (tenantId: string | null) => {
+    if (tenantId) {
+      // Carregar Config da Empresa do Tenant
+      const { data: configData } = await supabase
+        .from('company_config')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+
       if (configData) {
         setCompany({
           nome: configData.nome,
@@ -37,6 +123,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
           whatsapp: configData.whatsapp,
           email: configData.email,
           endereco: configData.endereco,
+          creci: configData.creci,
           descricao: configData.descricao,
           hero: {
             titulo: configData.hero_titulo,
@@ -61,99 +148,85 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
           }
         });
       }
+    } else if (profile?.role === 'super-admin') {
+      // Configuração padrão para Super Admin
+      setCompany({
+        ...initialCompany,
+        nome: "ImobSync (Global Admin)"
+      });
+    }
 
-      // 2. Carregar Imóveis
-      await refreshProperties();
+    // Carregar dados transacionais filtrados
+    await refreshProperties(tenantId);
+    await refreshLeads(tenantId);
+    await refreshSales(tenantId);
+  };
 
-      // 3. Carregar Leads
-      await refreshLeads();
+  // Carregar dados iniciais do Supabase
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const slug = getTenantSlug();
+      console.log('GlobalContext: Iniciando busca de dados.', { slug: slug || 'Principal', role: profile?.role, tenantId: profile?.tenantId });
 
-      // 4. Carregar Vendas
-      await refreshSales();
-
+      if (profile) {
+        // MODO DASHBOARD (Sessão Logada)
+        if (profile.tenantId) {
+          const { data: tenantData } = await supabase.from('tenants').select('*').eq('id', profile.tenantId).single();
+          if (tenantData) setTenant(tenantData);
+        } else {
+          setTenant(null); // Super Admin não tem tenant fixo
+        }
+        await loadConfigAndData(profile.tenantId);
+      } else if (slug && !isMainDomain()) {
+        // MODO VITRINE (URL Slug)
+        const { data: tenantData } = await supabase.from('tenants').select('*').eq('slug', slug).single();
+        if (tenantData) {
+          setTenant(tenantData);
+          await loadConfigAndData(tenantData.id);
+        }
+      } else {
+        // MODO DESLOGADO / LANDING PAGE
+        console.log('GlobalContext: Domínio principal deslogado. Resetando estado.');
+        setTenant(null);
+        setCompany(initialCompany);
+        setProperties([]);
+        setLeads([]);
+        setSales([]);
+      }
     } catch (error) {
-      console.error('Erro ao carregar dados do Supabase:', error);
+      console.error('GlobalContext: Erro crítico ao carregar dados:', error);
     } finally {
       setLoading(false);
+      console.log('GlobalContext: Carregamento finalizado.');
     }
   };
 
-  const refreshProperties = async () => {
-    const { data } = await supabase.from('properties').select('*').order('created_at', { ascending: false });
-    if (data) {
-      setProperties(data.map(p => ({
-        id: p.id,
-        titulo: p.titulo,
-        tipo: p.tipo,
-        finalidade: p.finalidade,
-        preco: p.preco,
-        area: p.area,
-        quartos: p.quartos,
-        banheiros: p.banheiros,
-        vagas: p.vagas,
-        descricao: p.descricao,
-        cidade: p.cidade,
-        bairro: p.bairro,
-        imagens: p.imagens,
-        destaque: p.destaque
-      })));
-    }
-  };
-
-  const refreshLeads = async () => {
-    const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-    if (data) {
-      setLeads(data.map(l => ({
-        id: l.id,
-        nome: l.nome,
-        email: l.email,
-        telefone: l.telefone,
-        propertyId: l.property_id,
-        propertyTitulo: l.property_titulo,
-        mensagem: l.mensagem,
-        data: l.created_at,
-        status: l.status
-      })));
-    }
-  };
-
-  const refreshSales = async () => {
-    const { data } = await supabase.from('sales_records').select('*').order('data_venda', { ascending: false });
-    if (data) {
-      setSales(data.map(s => ({
-        id: s.id,
-        propertyId: s.property_id,
-        propertyTitulo: s.property_titulo,
-        valorVenda: s.valor_venda,
-        valorComissao: s.valor_comissao,
-        corretorNome: s.corretor_nome,
-        dataVenda: s.data_venda,
-        status: s.status,
-        tipoContrato: s.tipo_contrato || 'Venda',
-        periodicidade: s.periodicidade || 'Única'
-      })));
-    }
-  };
-
+  // Dispara o fetchData sempre que o perfil, o slug ou o path mudar
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [profile?.id, profile?.tenantId, location.pathname]);
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--color-primary', company.cores.primaria);
-    document.documentElement.style.setProperty('--color-highlight', company.cores.destaque);
+    if (company.cores.primaria) {
+      document.documentElement.style.setProperty('--color-primary', company.cores.primaria);
+    }
+    if (company.cores.destaque) {
+      document.documentElement.style.setProperty('--color-highlight', company.cores.destaque);
+    }
   }, [company.cores]);
 
   return (
     <GlobalContext.Provider value={{ 
+      tenant,
       company, 
       setCompany, 
       properties, 
-      refreshProperties, 
+      refreshProperties: () => refreshProperties(profile?.tenantId), 
       leads, 
-      refreshLeads, 
+      refreshLeads: () => refreshLeads(profile?.tenantId), 
       sales,
-      refreshSales,
+      refreshSales: () => refreshSales(profile?.tenantId),
       loading 
     }}>
       {children}
