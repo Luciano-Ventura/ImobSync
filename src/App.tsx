@@ -51,9 +51,37 @@ function RootSelector() {
   return <Home />;
 }
 
+// Componente de segurança para capturar chaves ausentes
+function ConfigGuard({ children }: { children: React.ReactNode }) {
+  const hasKeys = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY;
+  
+  if (!hasKeys) {
+    return (
+      <div className="min-h-screen bg-[#020617] text-white flex items-center justify-center p-8 font-sans">
+        <div className="max-w-md w-full bg-white/5 border border-white/10 p-10 rounded-[2.5rem] text-center backdrop-blur-xl">
+           <div className="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-8">
+              <span className="text-4xl">⚠️</span>
+           </div>
+           <h1 className="text-2xl font-bold mb-4">Configuração Pendente</h1>
+           <p className="text-slate-400 mb-8 leading-relaxed text-sm">
+              As chaves do <span className="text-white">Supabase</span> não foram detectadas. 
+              Por favor, adicione <code className="text-indigo-400">VITE_SUPABASE_URL</code> e <code className="text-indigo-400">VITE_SUPABASE_ANON_KEY</code> nas configurações do Vercel.
+           </p>
+           <button onClick={() => window.location.reload()} className="w-full bg-white text-slate-900 py-4 rounded-2xl font-bold hover:bg-slate-200 transition-all">
+              Tentar Novamente
+           </button>
+        </div>
+      </div>
+    );
+  }
+  
+  return <>{children}</>;
+}
+
 function App() {
   return (
-    <HelmetProvider>
+    <ConfigGuard>
+      <HelmetProvider>
       <Router>
         <AuthProvider>
           <GlobalProvider>
@@ -101,6 +129,7 @@ function App() {
         </AuthProvider>
       </Router>
     </HelmetProvider>
+    </ConfigGuard>
   );
 }
 
