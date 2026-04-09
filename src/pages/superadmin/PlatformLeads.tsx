@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, MoreVertical, Mail, Phone, Building2, Calendar, CheckCircle, ArrowRight, Loader2, Copy, Check, Link as LinkIcon } from 'lucide-react';
+import { Plus, MoreVertical, Mail, Building2, Calendar, CheckCircle, ArrowRight, Copy, Check, Link as LinkIcon } from 'lucide-react';
 
 interface PlatformLead {
   id: string;

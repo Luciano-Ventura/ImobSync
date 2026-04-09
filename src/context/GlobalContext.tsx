@@ -4,7 +4,6 @@ import { companyData as initialCompany } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 import { getTenantSlug, isMainDomain } from '../lib/tenant';
 import { useAuth } from './AuthContext';
-import { useLocation } from 'react-router-dom';
 
 interface GlobalContextType {
   tenant: Tenant | null;

@@ -7,7 +7,7 @@ import type { Property } from '../../types';
 import { supabase } from '../../lib/supabase';
 import imageCompression from 'browser-image-compression';
 
-const initialForm = {
+const initialForm: Partial<Property> = {
   tipo: 'Casa',
   finalidade: 'Venda',
   bairro: 'Jardins',

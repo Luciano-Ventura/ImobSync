@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Layout, Rocket, Shield, Zap, ArrowRight, BarChart3, Globe, Smartphone, PlayCircle, X, Loader2, Star, Users } from 'lucide-react';
+import { CheckCircle2, Layout, Rocket, Shield, Zap, ArrowRight, BarChart3, Globe, Smartphone, X, Loader2, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
@@ -30,7 +30,7 @@ export default function SalesLanding() {
     }
   ];
 
-  const heroBackground = '/assets/hero_background.png';
+  
   const mobileMockup = '/assets/mockup_mobile_final.png'; // Mockup dedicado 9:16
 
   useEffect(() => {

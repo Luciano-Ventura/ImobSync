@@ -35,7 +35,6 @@ export const getTenantSlug = (): string | null => {
 export const isMainDomain = (): boolean => {
   const hostname = window.location.hostname;
   const pathname = window.location.pathname;
-  const slug = getTenantSlug();
   
   // Se houver um slug no subdomínio, NÃO é domínio principal
   const parts = hostname.split('.');

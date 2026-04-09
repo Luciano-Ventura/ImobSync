@@ -5,7 +5,7 @@ import { useGlobalContext } from '../../context/GlobalContext';
 import { supabase } from '../../lib/supabase';
 
 export default function Commissions() {
-  const { sales, refreshSales, properties } = useGlobalContext();
+  const { sales, refreshSales, properties, tenant } = useGlobalContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   

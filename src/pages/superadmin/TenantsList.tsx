@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Tenant } from '../../types/index';
-import { Building2, Search, Filter, MoreVertical, ShieldCheck, ShieldAlert, ExternalLink, Mail, Phone } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Building2, Search, Filter, MoreVertical, ShieldCheck, ShieldAlert, ExternalLink, Mail } from 'lucide-react';
 
 export default function TenantsList() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
