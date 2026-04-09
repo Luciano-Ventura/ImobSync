@@ -38,8 +38,15 @@ export const isMainDomain = (): boolean => {
   
   // Se houver um slug no subdomínio, NÃO é domínio principal
   const parts = hostname.split('.');
+  
+  // Detecção de domínios de infraestrutura (localhost, vercel, etc)
+  const isVercel = hostname.endsWith('.vercel.app');
+  
   if (hostname.includes('localhost')) {
     if (parts.length > 1 && parts[0] !== 'www') return false;
+  } else if (isVercel) {
+    // No vercel, se tiver mais de 3 partes (ex: cliente.imob-sync.vercel.app), é subdomínio de cliente
+    if (parts.length > 3) return false;
   } else if (parts.length > 2) {
     if (parts[0] !== 'www' && parts[0] !== 'admin') return false;
   }
