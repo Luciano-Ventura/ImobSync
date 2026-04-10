@@ -4,12 +4,13 @@ import type { UserRole } from '../types';
 
 interface ProtectedRouteProps {
   requiredRole?: UserRole;
+  allowedRoles?: UserRole[];
+  redirectTo?: string;
 }
 
-export default function ProtectedRoute({ requiredRole }: ProtectedRouteProps) {
+export default function ProtectedRoute({ requiredRole, allowedRoles, redirectTo = '/admin' }: ProtectedRouteProps) {
   const { session, profile, loading } = useAuth();
 
-  // Enquanto está carregando o estado de auth (sessão), mostramos o spinner
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -23,11 +24,14 @@ export default function ProtectedRoute({ requiredRole }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  // Se houver uma role obrigatória e o perfil carregou, checamos
-  // Nota: Não bloqueamos o acesso se o perfil ainda estiver carregando (profile === null)
-  // para evitar o problema de loading infinito.
+  // Verificação por role única (ex: super-admin)
   if (requiredRole && profile && profile.role !== requiredRole) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  // Verificação por lista de roles permitidas (ex: ['admin', 'super-admin'])
+  if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
+    return <Navigate to={redirectTo} replace />;
   }
 
   return <Outlet />;

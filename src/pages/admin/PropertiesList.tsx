@@ -23,7 +23,7 @@ const initialForm: Partial<Property> = {
 };
 
 export default function PropertiesList() {
-  const { properties, refreshProperties, tenant } = useGlobalContext();
+  const { properties, refreshProperties, tenant, company } = useGlobalContext();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -147,7 +147,7 @@ export default function PropertiesList() {
         descricao: formData.descricao || '',
         cidade: formData.cidade || 'São Paulo',
         bairro: formData.bairro || 'Jardins',
-        imagens: finalImages.length > 0 ? finalImages : ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80'],
+        imagens: finalImages.length > 0 ? finalImages : ((company as any).logoUrl ? [(company as any).logoUrl] : []),
         destaque: formData.destaque || false,
         tenant_id: tenant?.id || null
       };

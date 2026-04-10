@@ -1,15 +1,20 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Building, Settings, LogOut, ArrowLeft, Menu, CircleDollarSign } from 'lucide-react';
+import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
+import { LayoutDashboard, Building, Users, Settings, LogOut, ArrowLeft, Menu, CircleDollarSign, UserCircle } from 'lucide-react';
 import { useGlobalContext } from '../context/GlobalContext';
 import { useAuth } from '../context/AuthContext';
 import { isMainDomain } from '../lib/tenant';
 import { useState } from 'react';
 
+// Rotas que só admins podem acessar
+const ADMIN_ONLY_PATHS = ['/admin/equipe', '/admin/financeiro', '/admin/configuracoes'];
+
 export default function AdminLayout() {
   const { company, tenant } = useGlobalContext();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'super-admin';
 
   console.log('[TenantDebug] AdminLayout Context:', { 
     companyName: company.nome, 
@@ -17,12 +22,26 @@ export default function AdminLayout() {
     isMain: isMainDomain() 
   });
 
-  const navItems = [
-    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, exact: true },
-    { name: 'Imóveis', path: '/admin/imoveis', icon: Building, exact: false },
-    { name: 'Financeiro', path: '/admin/financeiro', icon: CircleDollarSign, exact: false },
-    { name: 'Configurações', path: '/admin/configuracoes', icon: Settings, exact: false },
+  // Redireciona corretores que tentam acessar rotas restritas via URL direta
+  if (!isAdmin && ADMIN_ONLY_PATHS.some(p => location.pathname.startsWith(p))) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  const allNavItems = [
+    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, exact: true, adminOnly: false, corretorOnly: false },
+    { name: 'Imóveis', path: '/admin/imoveis', icon: Building, exact: false, adminOnly: false, corretorOnly: false },
+    { name: 'Meu Perfil', path: '/admin/perfil', icon: UserCircle, exact: false, adminOnly: false, corretorOnly: true },
+    { name: 'Equipe', path: '/admin/equipe', icon: Users, exact: false, adminOnly: true, corretorOnly: false },
+    { name: 'Financeiro', path: '/admin/financeiro', icon: CircleDollarSign, exact: false, adminOnly: true, corretorOnly: false },
+    { name: 'Configurações', path: '/admin/configuracoes', icon: Settings, exact: false, adminOnly: true, corretorOnly: false },
   ];
+
+  // Admin vê tudo exceto itens corretorOnly. Corretor vê apenas itens não-adminOnly.
+  const navItems = allNavItems.filter(item => {
+    if (item.adminOnly) return isAdmin;
+    if (item.corretorOnly) return !isAdmin;
+    return true;
+  });
 
   const handleSignOut = async () => {
     await signOut();

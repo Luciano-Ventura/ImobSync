@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { GlobalProvider } from './context/GlobalContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import { useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -22,6 +23,8 @@ import Dashboard from './pages/admin/Dashboard';
 import PropertiesList from './pages/admin/PropertiesList';
 import Commissions from './pages/admin/Commissions';
 import Settings from './pages/admin/Settings';
+import TeamList from './pages/admin/TeamList';
+import ProfilePage from './pages/admin/ProfilePage';
 
 // Onboarding
 import SetPassword from './pages/onboarding/SetPassword';
@@ -86,7 +89,8 @@ function App() {
   return (
     <ConfigGuard>
       <HelmetProvider>
-      <Router>
+      <ToastProvider>
+        <Router>
         <AuthProvider>
           <GlobalProvider>
             <ScrollToTop />
@@ -114,6 +118,9 @@ function App() {
                 <Route element={<AdminLayout />}>
                   <Route index element={<Dashboard />} />
                   <Route path="imoveis" element={<PropertiesList />} />
+                  <Route path="perfil" element={<ProfilePage />} />
+                  {/* Rotas sensíveis - redirecionamento controlado pelo AdminLayout */}
+                  <Route path="equipe" element={<TeamList />} />
                   <Route path="financeiro" element={<Commissions />} />
                   <Route path="configuracoes" element={<Settings />} />
                 </Route>
@@ -132,6 +139,7 @@ function App() {
           </GlobalProvider>
         </AuthProvider>
       </Router>
+      </ToastProvider>
     </HelmetProvider>
     </ConfigGuard>
   );

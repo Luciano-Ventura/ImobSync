@@ -322,7 +322,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href={`https://wa.me/${companyData.whatsapp.replace(/\D/g, '')}`}
-              className="bg-highlight hover:bg-[#b5954a] text-white py-4 px-10 rounded-xl font-semibold transition-all shadow-lg text-lg flex items-center justify-center transform hover:-translate-y-1"
+              className="bg-highlight hover:opacity-90 text-primary py-4 px-10 rounded-xl font-bold transition-all shadow-lg text-lg flex items-center justify-center transform hover:-translate-y-1"
             >
               Falar no WhatsApp
             </a>

@@ -2,13 +2,20 @@ import { Link } from 'react-router-dom';
 import { BedDouble, Bath, CarFront, Maximize, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Property } from '../types';
+import { useGlobalContext } from '../context/GlobalContext';
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
+  const { company } = useGlobalContext();
   
+  // Usa logo da imobiliária como fallback quando imóvel não tem fotos válidas
+  const firstImage = property.imagens?.find(img => img && img.trim() !== '');
+  const companyLogo = (company as any).logoUrl;
+  const imageUrl = firstImage || companyLogo || null;
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -27,12 +34,21 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-slate-100 flex flex-col h-full"
     >
       {/* Image Container */}
-      <div className="relative overflow-hidden aspect-[4/3]">
-        <img 
-          src={property.imagens[0]} 
-          alt={property.titulo} 
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-        />
+      <div className="relative overflow-hidden aspect-[4/3] bg-slate-100">
+        {imageUrl ? (
+          <img 
+            src={imageUrl}
+            alt={property.titulo} 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+            <svg className="w-16 h-16 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              <polyline strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} points="9,22 9,12 15,12 15,22" />
+            </svg>
+          </div>
+        )}
         
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">

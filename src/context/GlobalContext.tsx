@@ -124,6 +124,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
           endereco: configData.endereco,
           creci: configData.creci,
           descricao: configData.descricao,
+          logoUrl: configData.logo_url || null,
           hero: {
             titulo: configData.hero_titulo,
             subtitulo: configData.hero_subtitulo,
@@ -145,7 +146,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
             ctaTexto: configData.sobre_cta_texto || '',
             imagemUrl: configData.sobre_imagem_url || ''
           }
-        });
+        } as any);
       }
     } else if (profile?.role === 'super-admin') {
       // Configuração padrão para Super Admin
@@ -170,13 +171,21 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
 
       if (profile) {
         // MODO DASHBOARD (Sessão Logada)
-        if (profile.tenantId) {
-          const { data: tenantData } = await supabase.from('tenants').select('*').eq('id', profile.tenantId).single();
+        let activeTenantId = profile.tenantId;
+
+        // Se for Super Admin e não tiver tenant, tenta pegar o primeiro para teste/dev
+        if (!activeTenantId && profile.role === 'super-admin') {
+          const { data: firstTenant } = await supabase.from('tenants').select('id').limit(1).maybeSingle();
+          if (firstTenant) activeTenantId = firstTenant.id;
+        }
+
+        if (activeTenantId) {
+          const { data: tenantData } = await supabase.from('tenants').select('*').eq('id', activeTenantId).single();
           if (tenantData) setTenant(tenantData);
         } else {
-          setTenant(null); // Super Admin não tem tenant fixo
+          setTenant(null);
         }
-        await loadConfigAndData(profile.tenantId);
+        await loadConfigAndData(activeTenantId);
       } else if (slug && !isMainDomain()) {
         // MODO VITRINE (URL Slug)
         const { data: tenantData } = await supabase.from('tenants').select('*').eq('slug', slug).single();
