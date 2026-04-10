@@ -35,21 +35,33 @@ export const getTenantSlug = (): string | null => {
 export const isMainDomain = (): boolean => {
   const hostname = window.location.hostname;
   const parts = hostname.split('.');
+  const pathname = window.location.pathname;
   
-  // 1. Detecção de subdomínio de cliente (localhost ou real)
+  // 1. Verificar se há subdomínio de cliente (localhost ou real)
+  let hasClientSubdomain = false;
   if (hostname.includes('localhost')) {
-    if (parts.length > 1 && parts[0] !== 'www') return false;
+    if (parts.length > 1 && parts[0] !== 'www') hasClientSubdomain = true;
   } else {
     const isVercel = hostname.endsWith('.vercel.app');
-    // No Vercel, subdomínios de projeto têm 3 partes (ex: projeto.vercel.app), 
-    // então subdomínios de cliente teriam 4 ou mais.
-    if (isVercel && parts.length > 3) return false;
-    // Em domínios reais (ex: cliente.imobsync.com), partes > 2 costuma ser cliente
-    if (!isVercel && parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'admin') return false;
+    // No Vercel, subdomínios de projeto têm 3 partes (ex: projeto.vercel.app)
+    if (isVercel && parts.length > 3) hasClientSubdomain = true;
+    // Em domínios reais (ex: cliente.imobsync.com ou cliente.imobsync.com.br)
+    // Se tiver 'www' ou 'admin', ignoramos como subdomínio de cliente
+    if (!isVercel && parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'admin') {
+      // Caso especial para domínios .com.br (3 partes como padrão)
+      // Se tiver 4 partes ou mais, é subdomínio de cliente
+      if (hostname.endsWith('.com.br')) {
+         if (parts.length > 3) hasClientSubdomain = true;
+      } else {
+         hasClientSubdomain = true;
+      }
+    }
   }
 
-  // 2. Se não houver subdomínio, verificamos se o path é reservado ou raiz
-  const pathname = window.location.pathname;
+  // Se houver subdomínio de cliente identificado, NUNCA é domínio principal
+  if (hasClientSubdomain) return false;
+
+  // 2. Se não houver subdomínio de cliente, verificamos se o path é reservado ou raiz
   const pathParts = pathname.split('/').filter(p => p.length > 0);
   const reservedPaths = ['admin', 'super-admin', 'login', 'negocios', 'definir-senha', 'imoveis', 'imovel'];
   
@@ -57,5 +69,7 @@ export const isMainDomain = (): boolean => {
     return true;
   }
 
+  // Se não for root nem path reservado, e não tiver subdomínio, 
+  // pode ser uma vitrine via path (/slug). Nesse caso não é o domínio institucional (landing).
   return false;
 };
