@@ -2,7 +2,7 @@ export interface Tenant {
   id: string;
   name: string;
   slug: string;
-  status: 'active' | 'suspended';
+  status: 'active' | 'suspended' | 'inactive';
 }
 
 export interface Property {

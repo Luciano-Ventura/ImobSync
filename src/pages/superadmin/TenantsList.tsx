@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import type { Tenant } from '../../types/index';
-import { Building2, Search, Filter, ShieldCheck, ShieldAlert, ExternalLink, Mail, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Building2, Search, ShieldCheck, ShieldAlert, ExternalLink, Mail, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
 
 export default function TenantsList() {

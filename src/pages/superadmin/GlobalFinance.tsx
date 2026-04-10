@@ -46,7 +46,7 @@ export default function GlobalFinance() {
 
       if (tenants) {
         // Formatar subscrições
-        const subs: TenantSubscription[] = tenants.map(t => ({
+        const subs: TenantSubscription[] = (tenants as any[]).map(t => ({
           id: t.id,
           name: t.name,
           plan_name: t.plan_name || 'Individual',
@@ -139,7 +139,7 @@ export default function GlobalFinance() {
            {subscriptions.length === 0 ? (
              <p className="text-center py-10 text-slate-400 font-medium">Nenhuma assinatura encontrada.</p>
            ) : (
-             subscriptions.map((sub, i) => (
+             subscriptions.map((sub) => (
                <div key={sub.id} className="flex items-center justify-between p-5 rounded-2xl bg-slate-50/50 border border-slate-100 hover:border-indigo-100 transition-all">
                   <div className="flex items-center gap-4">
                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">

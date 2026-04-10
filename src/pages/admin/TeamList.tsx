@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useGlobalContext } from '../../context/GlobalContext';
 import { useToast } from '../../context/ToastContext';
-import { supabase } from '../../lib/supabase';
 import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import { 
   Users, 
@@ -13,8 +12,7 @@ import {
   Trash2, 
   X,
   Loader2,
-  Search,
-  Filter
+  Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -246,8 +244,8 @@ export default function TeamList() {
                 <tr className="bg-slate-50/30">
                   <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Membro</th>
                   <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Nível de Acesso</th>
-                  <th className="px-8 py-5 text-[10px) font-bold text-slate-400 uppercase tracking-widest font-mono">Entrou em</th>
-                  <th className="px-8 py-5 text-[10px) font-bold text-slate-400 uppercase tracking-widest font-mono text-right">Ações</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Entrou em</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
