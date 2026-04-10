@@ -2,10 +2,11 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Building, Settings, LogOut, ArrowLeft, Menu, CircleDollarSign } from 'lucide-react';
 import { useGlobalContext } from '../context/GlobalContext';
 import { useAuth } from '../context/AuthContext';
+import { isMainDomain } from '../lib/tenant';
 import { useState } from 'react';
 
 export default function AdminLayout() {
-  const { company } = useGlobalContext();
+  const { company, tenant } = useGlobalContext();
   const { signOut } = useAuth();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -70,7 +71,10 @@ export default function AdminLayout() {
         </nav>
 
         <div className="p-4 border-t border-slate-800 space-y-2 mt-auto">
-          <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors font-medium text-sm">
+          <Link 
+            to={isMainDomain() && tenant?.slug ? `/${tenant.slug}` : "/"} 
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors font-medium text-sm"
+          >
             <ArrowLeft size={18} />
             Ver Vitrine
           </Link>

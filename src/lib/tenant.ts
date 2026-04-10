@@ -34,24 +34,22 @@ export const getTenantSlug = (): string | null => {
 
 export const isMainDomain = (): boolean => {
   const hostname = window.location.hostname;
-  const pathname = window.location.pathname;
-  
-  // Se houver um slug no subdomínio, NÃO é domínio principal
   const parts = hostname.split('.');
   
-  // Detecção de domínios de infraestrutura (localhost, vercel, etc)
-  const isVercel = hostname.endsWith('.vercel.app');
-  
+  // 1. Detecção de subdomínio de cliente (localhost ou real)
   if (hostname.includes('localhost')) {
     if (parts.length > 1 && parts[0] !== 'www') return false;
-  } else if (isVercel) {
-    // No vercel, se tiver mais de 3 partes (ex: cliente.imob-sync.vercel.app), é subdomínio de cliente
-    if (parts.length > 3) return false;
-  } else if (parts.length > 2) {
-    if (parts[0] !== 'www' && parts[0] !== 'admin') return false;
+  } else {
+    const isVercel = hostname.endsWith('.vercel.app');
+    // No Vercel, subdomínios de projeto têm 3 partes (ex: projeto.vercel.app), 
+    // então subdomínios de cliente teriam 4 ou mais.
+    if (isVercel && parts.length > 3) return false;
+    // Em domínios reais (ex: cliente.imobsync.com), partes > 2 costuma ser cliente
+    if (!isVercel && parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'admin') return false;
   }
 
-  // Se o PATH for um dos caminhos reservados ou vazio, é domínio principal
+  // 2. Se não houver subdomínio, verificamos se o path é reservado ou raiz
+  const pathname = window.location.pathname;
   const pathParts = pathname.split('/').filter(p => p.length > 0);
   const reservedPaths = ['admin', 'super-admin', 'login', 'negocios', 'definir-senha', 'imoveis', 'imovel'];
   
