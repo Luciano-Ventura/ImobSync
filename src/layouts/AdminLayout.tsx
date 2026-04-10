@@ -11,6 +11,12 @@ export default function AdminLayout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  console.log('[TenantDebug] AdminLayout Context:', { 
+    companyName: company.nome, 
+    tenantSlug: tenant?.slug,
+    isMain: isMainDomain() 
+  });
+
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, exact: true },
     { name: 'Imóveis', path: '/admin/imoveis', icon: Building, exact: false },
@@ -72,7 +78,7 @@ export default function AdminLayout() {
 
         <div className="p-4 border-t border-slate-800 space-y-2 mt-auto">
           <Link 
-            to={isMainDomain() && tenant?.slug ? `/${tenant.slug}` : "/"} 
+            to={tenant?.slug ? `/${tenant.slug}` : "/"} 
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors font-medium text-sm"
           >
             <ArrowLeft size={18} />

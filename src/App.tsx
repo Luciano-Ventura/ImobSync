@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { GlobalProvider } from './context/GlobalContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -44,8 +44,11 @@ function ScrollToTop() {
 
 function RootSelector() {
   const mainDomain = isMainDomain();
+  const { session } = useAuth();
   
-  if (mainDomain) {
+  // Se for o domínio principal e o usuário NÃO estiver logado, mostra a Landing Page de vendas.
+  // Caso contrário (está logado ou é um subdomínio de imobiliária), mostra a Vitrine (Home).
+  if (mainDomain && !session) {
     return <SalesLanding />;
   }
   
